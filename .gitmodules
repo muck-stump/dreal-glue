@@ -1,0 +1,4 @@
+[submodule "dreal4"]
+	path = dreal4
+	url = git@github.com:muck-stump/dreal4.git
+	branch = modernize-macos
