@@ -33,7 +33,35 @@ anything only on B's side is behavioral drift we introduced.
   from `install_prereqs.sh`. Container-side only — checkouts stay pristine.
 - **`install_prereqs.sh` runs verbatim** for the apt deps; it is
   byte-identical between the two pins (verified: between base and tip only
-  `.bazelrc` and `setup/mac/*` changed).
+  `.bazelrc` and `setup/mac/*` changed). One harness-side deletion:
+  `libibex-dev` (see below).
+
+## ibex: why the container source-builds it, and from what
+
+- ppa:dreal/dreal ships `libibex-dev` for **amd64 only**: the PPA's
+  `dists/jammy/main/binary-arm64/Packages` index is **empty (20 bytes)**,
+  amd64 has it. So on arm64 the apt package cannot exist → README's
+  anticipated fallback: build ibex from source (image gets
+  `sed -i '/^libibex-dev$/d'` on its *copy* of the prereq script).
+- **Which source = the PPA's own source.** The amd64 package version is
+  `2.7.4.20220710…git352eeeb2345fb2b7a7ec248b44770d8cdc4a5d67~22.04`, i.e.
+  dreal-deps/ibex-lib **@352eeeb** — also what `Dockerfile.amazonlinux`
+  builds from source into **`/opt/libibex/2.7.4`**, the exact prefix
+  `dreal/workspace.bzl` probes on Linux. So arm64 gets the reference
+  amd64's own ibex source at the path dreal already expects.
+- **cell C differs**: its mac formula pins tag `ibex-2.7.4_13` = commit
+  `26eeeaa` (2021-08-26), a *different snapshot* of the 2.7.4 line
+  (trees differ across plugins/). Same version string, not same tree →
+  record under B-vs-C attribution (never affects A-vs-B: one image).
+- arm64 details, all verified: configure probes `-frounding-math` and
+  `-ffloat-store` compile on gcc-11/aarch64; `-msse3` fails but the wscript
+  guards it (`mandatory=False` → sse2 → plain fallbacks); installed
+  `ibex.pc` has `-msse3 -ffloat-store` baked in from `ibex.pc.in` → stripped
+  post-install (**identical to cell C's formula "Patch 3"**); system clp
+  found via `/usr/lib/aarch64-linux-gnu/pkgconfig/clp.pc` (no bundled-Clp
+  fallback); bundled `filibsrc-3.0.2.2` builds via configure+**`make`**
+  (apt list lacks `make` → harness installs it, as amazonlinux's yum list
+  does); `waf` is already `python3` at this commit (no shebang patch).
 
 ## Root cause: image build failure (solved)
 
@@ -80,10 +108,16 @@ in the bazel test summary table (`NO STATUS` = couldn't build under `-k`).
 - [x] podman installed + machine created (6.1.4, applehv, arm64, 8/12288/60,
       no `--rosetta` option in this version)
 - [x] harness written (`Containerfile`, `cells.env`, `install-bazel.sh`,
-      `in-container-test.sh`, `run-cell.sh`, `collect.sh`)
+      `install-ibex.sh`, `in-container-test.sh`, `run-cell.sh`, `collect.sh`)
 - [x] gpg-agent root cause, fix in Containerfile (container-side)
-- [ ] reference image `dreal-ref:22.04` builds
-- [ ] cells A + B run in parallel, collected to `runs/failed.{A,B}.txt`
+- [x] reference image `dreal-ref:22.04` built
+      (id `02836d7ba893…`: gpg-agent fix, libibex-dev→source ibex 2.7.4,
+      `make`+`wget`, sha-pinned `bazel 7.0.0` arm64 binary — `bazel --version`
+      verified inside)
+- [x] cells A + B launched in parallel (containers `dreal-cell-A/-B`,
+      volumes `dreal-cell-{A,B}-{src,bazel}`); both compiling, ~4.7 cores
+      each, memory/disk healthy. Finish with `harness/collect.sh {A,B}`.
+- [ ] `runs/failed.{A,B}.txt` collected
 - [ ] `report.md`: `comm -3` diff + attribution; record image ID + `dpkg -l`
       manifest as env-equality evidence; score the cell-C predictions
       (119 cpplint / 21 unsat-cluster / `get_value_01` / `timer_test`)

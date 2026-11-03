@@ -11,12 +11,14 @@ FROM ubuntu:22.04
 #   gpg: error running '/usr/bin/gpg-agent': probably not installed
 # Root-caused by repro: passes with recommends, fails without; it is NOT a
 # build-vs-run or homedir issue. Upstream CI runners have gpg-agent already,
-# so installing it restores the upstream-equivalent environment. Tooling-only
-# (the dependency set the tests see, e.g. libibex-dev from ppa:dreal/dreal,
-# is untouched).
+# so installing it restores the upstream-equivalent environment. Tooling-only.
 RUN apt-get update -qq \
-    && apt-get install -y --no-install-recommends gpg-agent \
-    && rm -rf /var/lib/apt/lists/*
+    && apt-get install -y --no-install-recommends gpg-agent
+
+# NOTE: apt lists from the step above are deliberately kept (deleting them
+# forces an extra network round inside the script below, and ports.ubuntu.com
+# DNS has already been seen to flake during builds — hence the bounded retry
+# around the script, mirroring the `sleep 30` retries upstream uses itself).
 
 # Upstream prerequisites, verbatim from the pinned dreal4 checkout, truncated
 # right before upstream's "# Install bazel" section (upstream ships no arm64
@@ -24,10 +26,31 @@ RUN apt-get update -qq \
 # The script is byte-identical between the two compared commits (verified:
 # only .bazelrc and setup/mac changed between them), so both cells get the
 # exact same apt dependency set.
+#
+# ONE deliberate deletion, harness-side: `libibex-dev`. The dreal PPA's
+# arm64 package index for jammy is empty (amd64-only PPA), so the package
+# does not exist on this arch — it is replaced by a source build of the very
+# same commit the amd64 package was built from (see install-ibex.sh below).
 COPY dreal4/setup/ubuntu/22.04/install_prereqs.sh /tmp/install_prereqs.sh
 RUN awk '/# Install bazel/{exit} {print}' /tmp/install_prereqs.sh > /tmp/apt-prereqs.sh \
-    && bash /tmp/apt-prereqs.sh \
+    && sed -i '/^libibex-dev$/d' /tmp/apt-prereqs.sh \
+    && for i in 1 2 3; do \
+         bash /tmp/apt-prereqs.sh && ok=1 && break; \
+         echo "install_prereqs attempt $i failed; retrying in 30s" >&2; sleep 30; \
+       done; \
+    test "${ok:-}" = 1 \
     && rm -f /tmp/install_prereqs.sh /tmp/apt-prereqs.sh
+
+# wget serves both install-ibex.sh and install-bazel.sh (upstream's script
+# installs wget itself, but only inside the bazel section we truncate);
+# make is needed by ibex's bundled filib install (its configure+make path —
+# amazonlinux's yum install list carries make for the same reason).
+RUN apt-get install -y --no-install-recommends wget make
+
+# ibex 2.7.4 (same commit as the amd64 PPA package) into the prefix
+# dreal/workspace.bzl probes: /opt/libibex/2.7.4.
+COPY harness/install-ibex.sh /tmp/install-ibex.sh
+RUN bash /tmp/install-ibex.sh && rm -f /tmp/install-ibex.sh
 
 # Bazel 7.0.0 (same version as .bazelversion), arch-appropriate artifact.
 COPY harness/install-bazel.sh /tmp/install-bazel.sh
