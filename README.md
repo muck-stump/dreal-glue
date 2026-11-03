@@ -34,16 +34,19 @@ Matrix (a "cell" = code × environment):
 
 | cell | code | environment | state |
 |---|---|---|---|
-| A | base `f93bdcc` (original, pre-modernization) | reference container (Ubuntu) | **to run** — the baseline |
-| B | branch `e6d31b4` (`modernize-macos` tip, current submodule pin) | reference container | **to run** |
+| A | base `f93bdcc` (original, pre-modernization) | reference container (Ubuntu) | **measured: 445/445 pass** |
+| B | branch `e6d31b4` (`modernize-macos` tip, current submodule pin) | reference container | **measured: 445/445 pass** |
 | C | branch `e6d31b4` | this Mac (macOS, Apple Silicon) | **measured: 445 tests, 303 pass / 142 fail** |
 | D | base `f93bdcc` | this Mac | doesn't even configure/build — that is why the modernization exists; out of scope (build-level, not test-level) |
 
 Two comparisons, two questions:
 
 - **A vs B** (same environment): did our 13 commits change behavior?
-  Expected difference: **none**. Any target failing in B but passing in
-  A is a regression we introduced → fix/revert in dreal4. Known
+  Expected difference: **none** — and measured difference is none: both
+  cells ran the identical 445 targets, 445/445 pass each, `comm -3` of
+  the failing lists is empty (full evidence + method: [`report.md`](report.md)).
+  Had it been non-empty, any target failing in B but passing in A would
+  be a regression we introduced → fix/revert in dreal4. Known
   cross-platform suspects if it is non-empty: the `.bazelrc` `-Wno-error`
   relaxation, the `python_configure.bzl` distutils probe, the
   `optional.hpp` emplace port.
@@ -187,17 +190,17 @@ Done: dreal4 modernization (13 commits, all pushed), cell C measured
 and documented in `dreal4/README.md`, this workspace scaffolded, podman
 installed and its machine created (6.1.4, applehv, arm64 native,
 8 CPU / 12 GiB / 60 GiB; this version offers no `--rosetta` flag, so the
-amd64 tiebreaker arch is out of scope). The A/B harness now lives in
-`harness/` — reference `Containerfile`, cell runner, collector — with a
-live progress log (decisions, root causes, checklists) in
-`harness/NOTES.md`.
+amd64 tiebreaker arch is out of scope), the A/B harness written under
+`harness/` (see `harness/NOTES.md` for decisions, root causes and
+checklists), **cells A and B measured — 445/445 pass each, zero A/B
+diff — and `report.md` produced with the attribution of cell C's
+failures to the environment.**
 
 Not done, in order:
 
-1. Run cells A and B (`harness/run-cell.sh {A,B}` in parallel, collect
-   with `harness/collect.sh {A,B}`) → `runs/failed.<cell>.txt`.
-2. Produce `report.md` (`comm -3` of the two lists + attribution).
-3. Fold the conclusions back into `dreal4/README.md` as documentation
-   commits.
-
-Optional: tier-0 smoke run against the prebuilt `dreal/dreal4` image.
+1. Fold the conclusions from `report.md` back into `dreal4/README.md`
+   as documentation commits (submodule deliberately untouched so far).
+2. Optional: tier-0 smoke run against the prebuilt `dreal/dreal4` image.
+3. Optional follow-up round: the `gmp_repository.bzl` arch-probe fix as
+   a normal dreal4 commit → re-pin → fresh A′/B′ pair (until then, the
+   image's gmp.h symlink carries both cells equally).
