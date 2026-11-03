@@ -2,3 +2,4 @@
 runs/*.log
 runs/exit-code.*
 runs/flaky.*
+runs/passed.*
