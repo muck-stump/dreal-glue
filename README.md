@@ -184,21 +184,20 @@ commit ids instead, as recorded in the reports.
 ## Status / next steps
 
 Done: dreal4 modernization (13 commits, all pushed), cell C measured
-and documented in `dreal4/README.md`, this workspace scaffolded.
+and documented in `dreal4/README.md`, this workspace scaffolded, podman
+installed and its machine created (6.1.4, applehv, arm64 native,
+8 CPU / 12 GiB / 60 GiB; this version offers no `--rosetta` flag, so the
+amd64 tiebreaker arch is out of scope). The A/B harness now lives in
+`harness/` — reference `Containerfile`, cell runner, collector — with a
+live progress log (decisions, root causes, checklists) in
+`harness/NOTES.md`.
 
 Not done, in order:
 
-1. Install podman (not yet on this machine):
+1. Run cells A and B (`harness/run-cell.sh {A,B}` in parallel, collect
+   with `harness/collect.sh {A,B}`) → `runs/failed.<cell>.txt`.
+2. Produce `report.md` (`comm -3` of the two lists + attribution).
+3. Fold the conclusions back into `dreal4/README.md` as documentation
+   commits.
 
-   ```bash
-   brew install podman
-   podman machine init --cpus 8 --memory 12288 --disk-size 60
-   ```
-
-   Add `--rosetta` if `podman machine init --help` offers it (enables
-   amd64 emulation).
-2. Write the harness here (small commits): cell runner inside the
-   container, `runs/failed.<cell>.txt` collection, list diffs,
-   optional tier-0 smoke run against the `dreal/dreal4` image.
-3. Run cells A and B, produce `report.md`, then fold the conclusions
-   back into `dreal4/README.md` as documentation commits.
+Optional: tier-0 smoke run against the prebuilt `dreal/dreal4` image.
