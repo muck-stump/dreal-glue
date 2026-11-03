@@ -1,0 +1,4 @@
+# per-run logs: kept locally, not committed (the committed artifact is runs/failed.<cell>.txt)
+runs/*.log
+runs/exit-code.*
+runs/flaky.*

@@ -1,0 +1,38 @@
+# Reference environment for the dreal4 A/B (cells A and B).
+# Built once; both cells run from this one image so the environment is
+# byte-identical between them. The checkout under test is materialized into a
+# volume at run time (git archive of the pinned commit) and never modified
+# from here — all container-side deviations live in this harness.
+FROM ubuntu:22.04
+
+# gpg-agent: the prereq script below installs software-properties-common with
+# --no-install-recommends, which on 22.04 leaves /usr/bin/gpg-agent missing;
+# add-apt-repository then dies importing the PPA key:
+#   gpg: error running '/usr/bin/gpg-agent': probably not installed
+# Root-caused by repro: passes with recommends, fails without; it is NOT a
+# build-vs-run or homedir issue. Upstream CI runners have gpg-agent already,
+# so installing it restores the upstream-equivalent environment. Tooling-only
+# (the dependency set the tests see, e.g. libibex-dev from ppa:dreal/dreal,
+# is untouched).
+RUN apt-get update -qq \
+    && apt-get install -y --no-install-recommends gpg-agent \
+    && rm -rf /var/lib/apt/lists/*
+
+# Upstream prerequisites, verbatim from the pinned dreal4 checkout, truncated
+# right before upstream's "# Install bazel" section (upstream ships no arm64
+# .deb for Bazel 7.0.0 — installing it is harness/install-bazel.sh instead).
+# The script is byte-identical between the two compared commits (verified:
+# only .bazelrc and setup/mac changed between them), so both cells get the
+# exact same apt dependency set.
+COPY dreal4/setup/ubuntu/22.04/install_prereqs.sh /tmp/install_prereqs.sh
+RUN awk '/# Install bazel/{exit} {print}' /tmp/install_prereqs.sh > /tmp/apt-prereqs.sh \
+    && bash /tmp/apt-prereqs.sh \
+    && rm -f /tmp/install_prereqs.sh /tmp/apt-prereqs.sh
+
+# Bazel 7.0.0 (same version as .bazelversion), arch-appropriate artifact.
+COPY harness/install-bazel.sh /tmp/install-bazel.sh
+RUN bash /tmp/install-bazel.sh && rm -f /tmp/install-bazel.sh
+
+# The in-container test driver both cells run identically.
+COPY harness/in-container-test.sh /usr/local/bin/dreal-cell-test
+RUN chmod +x /usr/local/bin/dreal-cell-test
