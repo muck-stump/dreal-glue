@@ -103,6 +103,21 @@ Per-run artifacts: `runs/failed.<cell>.txt` (committed),
 only, gitignored). Oracle: `PASSED/FAILED/TIMEOUT/NO STATUS` per-target lines
 in the bazel test summary table (`NO STATUS` = couldn't build under `-k`).
 
+## Run history (why run 1 is discarded)
+
+- **Round 1 — INVALID.** Both cells reported `Executed 186 out of 186
+  tests` and rc 1: `tools/gmp_repository.bzl` hardcodes the x86 gmp.h
+  tuple → fetch failure → loading-phase errors silently dropped ~259
+  targets (`Executed N out of M` counts only what survived loading), and
+  the fail-parser additionally matched mid-log gtest lines
+  (`[  FAILED  ]`, ` 1 FAILED TEST`) as bogus labels. Fixed: image gets a
+  gmp.h symlink (Fedora branch of the rule), parser anchors on `$1 ~ /^\/\//`,
+  driver records `completeness.<cell>.txt` so an empty failed-list cannot
+  again hide a partial run, `--cache_test_results=no` forces real replay.
+- **Round 2 — VALID**: 445/445 in both, `comm -3` empty. Cell B's
+  `timer_test` failed once in round 1 and passed in round 2 (identical
+  sources between pins) → flake, both rounds recorded honestly.
+
 ## Status
 
 - [x] podman installed + machine created (6.1.4, applehv, arm64, 8/12288/60,
@@ -110,17 +125,24 @@ in the bazel test summary table (`NO STATUS` = couldn't build under `-k`).
 - [x] harness written (`Containerfile`, `cells.env`, `install-bazel.sh`,
       `install-ibex.sh`, `in-container-test.sh`, `run-cell.sh`, `collect.sh`)
 - [x] gpg-agent root cause, fix in Containerfile (container-side)
-- [x] reference image `dreal-ref:22.04` built
-      (id `02836d7ba893…`: gpg-agent fix, libibex-dev→source ibex 2.7.4,
-      `make`+`wget`, sha-pinned `bazel 7.0.0` arm64 binary — `bazel --version`
-      verified inside)
-- [x] cells A + B launched in parallel (containers `dreal-cell-A/-B`,
-      volumes `dreal-cell-{A,B}-{src,bazel}`); both compiling, ~4.7 cores
-      each, memory/disk healthy. Finish with `harness/collect.sh {A,B}`.
-- [ ] `runs/failed.{A,B}.txt` collected
-- [ ] `report.md`: `comm -3` diff + attribution; record image ID + `dpkg -l`
-      manifest as env-equality evidence; score the cell-C predictions
-      (119 cpplint / 21 unsat-cluster / `get_value_01` / `timer_test`)
+- [x] reference image `dreal-ref:22.04` built — final id
+      `0c0567ed3fc1ec3283873645964e1ccae668eb43df9c1faa9fdd8dfaef1fd410`
+      (gpg-agent fix, source ibex, `make`+`wget`, sha-pinned bazel 7.0.0
+      arm64, gmp.h symlink)
+- [x] cells A + B run in parallel (rounds 1 invalid / 2 valid — see run
+      history above): container `dreal-cell-A/-B`, volumes
+      `dreal-cell-{A,B}-{src,bazel}`
+- [x] `runs/failed.{A,B}.txt` collected — both **empty**; completeness:
+      445/445 executed, no loading errors; identical target sets
+- [x] `report.md`: empty `comm -3` diff + attribution; image ID +
+      `dpkg -l` manifest in `runs/env-manifest.txt`; all four cell-C
+      predictions scored confirmed (119 cpplint / 21 unsat-cluster /
+      `get_value_01` env-caused, `timer_test` flaky)
 - [ ] conclusions folded into `dreal4/README.md` as docs commits
+      *(maintainer step — submodule intentionally untouched so far)*
+- [ ] optional tier-0 smoke: prebuilt `dreal/dreal4` image on the failing
+      cell-C inputs (indicative only)
+- [ ] optional follow-up round: fix `gmp_repository.bzl` arch probe as a
+      normal dreal4 commit → new pin → fresh A'/B' pair
 - [ ] optional tier-0 smoke: prebuilt `dreal/dreal4` image on the failing
       cell-C inputs (indicative only)
