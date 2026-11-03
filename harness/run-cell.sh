@@ -34,8 +34,8 @@ NAME="dreal-cell-$CELL"
 SRC_VOL="dreal-cell-$CELL-src"
 BAZEL_VOL="dreal-cell-$CELL-bazel"
 
-podman volume create "$SRC_VOL" >/dev/null
-podman volume create "$BAZEL_VOL" >/dev/null
+podman volume exists "$SRC_VOL" 2>/dev/null || podman volume create "$SRC_VOL" >/dev/null
+podman volume exists "$BAZEL_VOL" 2>/dev/null || podman volume create "$BAZEL_VOL" >/dev/null
 podman rm -f "$NAME" >/dev/null 2>&1 || true
 
 echo "cell $CELL: materializing $(git -C "$ROOT/dreal4" rev-parse "$COMMIT")"

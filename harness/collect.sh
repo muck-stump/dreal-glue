@@ -22,10 +22,13 @@ podman run --rm \
       cp /work/flaky.txt       /out/flaky.$CELL.txt
       cp /work/bazel-test.log  /out/bazel-test.$CELL.log
       cp /work/exit-code.txt   /out/exit-code.$CELL.txt
+      cp /work/completeness.txt /out/completeness.$CELL.txt
     "
 
 echo "collected:"
 echo "  runs/failed.$CELL.txt        ($(wc -l < "$ROOT/runs/failed.$CELL.txt") failing targets, bazel rc=$(cat "$ROOT/runs/exit-code.$CELL.txt"))"
 echo "  runs/flaky.$CELL.txt         ($(wc -l < "$ROOT/runs/flaky.$CELL.txt") flaky-then-passed)"
+echo "  runs/completeness.$CELL.txt:"
+sed 's/^/    /' "$ROOT/runs/completeness.$CELL.txt"
 echo "  runs/bazel-test.$CELL.log    (full log)"
 podman rm -f "$NAME" >/dev/null

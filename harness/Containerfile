@@ -59,3 +59,16 @@ RUN bash /tmp/install-bazel.sh && rm -f /tmp/install-bazel.sh
 # The in-container test driver both cells run identically.
 COPY harness/in-container-test.sh /usr/local/bin/dreal-cell-test
 RUN chmod +x /usr/local/bin/dreal-cell-test
+
+# Portability symlink for dreal's gmp repository rule: tools/gmp_repository.bzl
+# probes only /usr/include/x86_64-linux-gnu/gmp.h (hardcoded x86 tuple) or
+# /usr/include/gmp.h (Fedora layout). Ubuntu multiarch on arm64 is neither, so
+# the fetch failed with "Failed to locate gmp.h", and the loading-phase errors
+# silently dropped ~259 test targets (everything depending on @gmp//:gmp — the
+# whole smt2/dr behavioral corpus) from BOTH cells' runs while bazel still
+# said "Executed 186 out of 186". The symlink satisfies the rule's Fedora
+# branch and points AT the very file compilers already find by default, so
+# nothing changes but the rule succeeding. Container-side by design: the .bzl
+# must not be patched here or the cells stop being their pinned commits —
+# fix belongs in a later round (see harness/NOTES.md).
+RUN ln -sf /usr/include/aarch64-linux-gnu/gmp.h /usr/include/gmp.h
