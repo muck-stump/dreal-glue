@@ -471,3 +471,19 @@ link clean — gmpxx is the only clash).
 **Shim v4 (registered before attempt 5):** build gmp (same brew version,
 `--enable-cxx`, CC=gcc-16) into `~/.local/opt/gmp-gcc16`, shim prepends its
 `lib/` on link lines. Trial semantics unchanged; scoring branches unchanged.
+
+**T-d ATTEMPT 5: VALID FULL RUN — SCORED.** Executed 444/445 (1 fail-to-
+build = the known `-Wdangling-reference` target, exactly cells D/E's
+record; `BUILD DID NOT COMPLETE` flag = that one absent-from-status-row
+case the completeness parser documents). Result vs frozen 22: **0 flips —
+all 22 still fail under gcc-16** ⇒ **registered persist-branch taken:
+mechanism is on the Darwin side; compiler vendor exonerated on this
+Mac** (apple clang and brew gcc-16 both cluster, while gcc AND clang run
+Linux)+additions: `contractor_ibex_fwdbwd_test` (build, known),
+`timer_test` (flake), and 6 gcc-specific NEW failures to note as
+toolchain-side curiosities, outside cluster scoring: `util:cds_test`,
+`test:cds_priority_queue_test`, `python:{contractor,solver,symbolic}_test`.
+Infrastructure log for the record (5 attempts): -mmacos-version-min
+dialect → @params leak → gcc-doesn't-auto-link-libstdc++ → brew gmpxx
+libc++ ABI (fixed by gcc-built gmp-6.3.0 `-std=gnu17` trial prefix, exact
+`__ZlsRSoPK12__mpz_struct` symbol match) — all in `harness/shim-bin/gcc-16-compat`.

@@ -1,0 +1,12 @@
+# T-e trial image (hypotheses.md): the reference environment with ONE delta —
+# the compiler family. FROM the actual A/B reference image (every layer shared:
+# apt set, source-built ibex@352eeeb, bazel 7.0.0, driver) + clang (jammy =
+# clang-14) as the toolchain. Scoring: does the cluster appear on Linux under
+# an LLVM-family compiler (pre-registered: absent, ≤2 fails)?
+FROM dreal-ref:22.04
+
+RUN apt-get update -qq && apt-get install -y --no-install-recommends clang \
+    && rm -rf /var/lib/apt/lists/*
+
+ENV CC=clang \
+    CXX=clang++
