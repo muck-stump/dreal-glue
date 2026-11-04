@@ -139,3 +139,43 @@ Open, ranked (nothing below pre-registered yet):
    (Every trial that passed at 445/445 did so with **no code change** —
    the mac cluster is still an environment-attributed, not-yet-root-caused
    finding; “all tests passing” is NOT yet reached.)
+
+### T-g (added after user green-lit it): LLVM-project clang on this Mac
+
+Trial added when the round-5 discussion was "something about this Mac —
+like a bug in Apple's compilers?": the sharpest test of *that* is a
+third, independent compiler at fixed OS/SDK/libm/HW. Run = LLVM-project
+clang 23.1.4 (brew `llvm`, unmodified upstream) against dreal + ibex,
+stdio-headers pinned to Apple's SDK set, after 3 registered infrastructure
+accommodations (LLVM's bundled libc++23 headers degrade `std::result_of`
+at -std=c++17; clang23's driver injects `-fdepfile-entry=<SDK>/SDKSettings.json`
+into every TU which bazel's absolute-path validator rejects; bazel's
+builtin-dir parser reads probe *stderr* only). Result: **valid 445/445
+run, failing set byte-identical — all 22 (+ the usual flake).** Ledger
+verdict: **fork exonerated** (branch as registered, `report.md`
+T-g pre-registration).
+
+Complete grid, now with three compilers on macOS:
+
+| runtime → / compiler | gcc | clang (LLVM upstream, non-Apple) |
+|---|---|---|
+| **Linux/glibc** | 0/22 (A/B/D/E) | 6/22 (T-e, clang-14) |
+| **darwin (this Mac)** | 22/22 (T-d, gcc-16) | 22/22 apple-clang-21 (C) **and** 22/22 brew LLVM 23 (T-g) |
+
+Narrowing after T-g: excluded = dreal code, ibex source, fp-flags,
+−ffp-contract, libm tables at face value, compiler *vendor* AND compiler
+*fork* AND compiler *version* on mac (21 apple / 23 upstream / 16 gcc all
+agree). **Remaining, in priority order:** (1) Darwin machine/runtime state
+— rounding mode / flush-to-zero around the process (affects every compiler
+identically; explains T-d + T-g symmetry); (2) system libc++/libm at
+knife-edge decision points (T-c's ≤1-ulp differences amplified where an
+interval box sits exactly on a branch condition); (3) SDK/library
+implementation seams outside libc++ headers (fenv(), lround, nextafter
+routing through Apple's libm inside otherwise-pure-arithmetic code paths —
+explains why pure-linear `github_issue_192` clusters only on darwin).
+Next cheapest discriminator (not yet run): a value-trace probe — same
+expression evaluated at each contractor step, printed on mac and inside
+cell D's container, first fork whose double *bit patterns* differ tells
+which of (1)/(2)/(3) it is. T-g cost/credits: 4 attempts, 3 shims, all
+registered before outcomes; cell C restored to canonical recipe and
+re-measured 423/22 (baseline exact).

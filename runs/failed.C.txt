@@ -20,4 +20,3 @@
 //dreal/test/smt2:github_issue_192
 //dreal/test/smt2:github_issue_201
 //dreal/test/smt2:minimize_03
-//dreal/util:timer_test
