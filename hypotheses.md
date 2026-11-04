@@ -216,3 +216,19 @@ so the failure sits in the compiler↔rounding-control seam. Contradiction
 logged: T-d (gcc-16 macOS, 22/22 fail) should then round outward — next
 round reconciles (ibex-own cflags line + gcc-mac rounding probe + clang-14
 in the T-e image). Full text: report.md T-h; artifacts: runs/T-h-*.
+
+## Round 7 — from observation to root cause (T-i, T-j, K, T-l)
+
+| trial | what | result vs pre-registration |
+|---|---|---|
+| T-i | rebuild ibex with **gcc-16 on the Mac**, value-probe (resolve T-d collision) | **P1b**: round-to-nearest, byte-equal to apple-clang's → rounding-loss is *compiler-independent on darwin*; T-d collision closed in the mechanism's favour (receipts: `-frounding-math` really was live) |
+| T-j | build ibex with **clang-14 on Linux**, same probe (the T-e six-slice) | **P2b**: outward = linux pattern (twice-confirmed incl. fresh 3-`fesetround`-refs lib) → the 6-test slice is **not** rounding; rounding-loss = darwin-exclusive, 2-of-2 compilers per OS |
+| K | mechanism read: digest rounding_control, selector traces, macro matrix, `nm` fenv refs | **Pka taken**: `rounding_control_double.hpp:82` → iso9x(fesetround dance) **iff `__STDC_IEC_559__`**, else **`void` = empty `downward(){}` NOP**; `config.hpp`'s force-define is *commented-out code, identical both sides* (**Pkb falsified**: `-frounding-math` defines nothing anywhere). Macro declared by glibc chain (linux g++ native=1, clang-14 0→1 via `<iostream>`), **never by any darwin toolchain chain (0,0)** ⇒ **root cause of the 22-test cluster: macOS ibex has no directed rounding at all → non-rigorous intervals → C1 wrong-unsat-with-witness.** OS-level `fesetround` proven fine (fix site = selector, not OS) |
+| T-l | **your upgrade trial: ibex 2.9.1** (gates + value probe + cell run) | G-base passed (stock stays 2.7.4); P-sel/P-behav **falsified in the hoped direction**: 2.9 = **gaol-family kernel** (old `filib rounding_control` gone entirely) with **outward darwin rows**; cell run = **invalid / P-build taken** (285 fail-to-build) — census: **16 errors / 12 classes / 4 files** (`LinearizerCombo→Compo`, `ContractorIbexPolytope` inheritance, `Box` nothrow-move asserts) → **port is small**; P-fix/P-persist remain unresolved pending a port |
+
+Two competing fix paths now stand, pre-registration queued for next:
+**(i) macro-force** (`-D__STDC_IEC_559__` into the *building* of ibex
++ dreal copts — pure trial knobs, no source edits; mechanism says iso9x
+gets selected and darwin is *proven* to honor it) vs **(ii) port dreal
+to 2.9** (real code, ~4 files per census, kernel switched to gaol which
+is outward on darwin by measurement).
