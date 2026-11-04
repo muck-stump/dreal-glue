@@ -48,6 +48,13 @@ build") predates the scheme and was never a cell. Earlier measurements stay
 readable in git history. `harness/summary.sh` regenerates the table above
 live from `runs/` — it is the human pass/fail view.
 
+Round 4 (ibex swap): cell C was re-pointed from Homebrew's ibex
+(`2.7.4_13` = commit `26eeeaa`, 2021) to the same source commit every
+Linux cell builds (`352eeeb`) — harness `pkg-config` shim, Homebrew and
+the checkout untouched. The 22-failure cluster **did not move**: the ibex
+commit is exonerated as the mechanism (`report.md`, round 4; evidence of
+what each run believed: `runs/ibex.C.txt`).
+
 Three comparisons, three questions:
 
 - **A vs B** (same environment): did our 13 commits change behavior?
