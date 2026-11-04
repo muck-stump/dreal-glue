@@ -826,3 +826,33 @@ Reads: which rounding primitive + its `#if` tree; whether the dance lives
 in headers (visible to every TU) or inside libibex `.cpp` (waf-owned
 flags only); `nm -i round` for lib-level rounding symbols. Either branch
 keeps fenv-exoneration from T-h follow-on intact.
+
+**K SCORED — Pka TAKEN (with the guard identified exactly), Pkb FALSIFIED.**
+The complete causal chain, every link measured:
+1. `rounding_control_double.hpp:78-91`: sparc-asm → **`#elif
+   defined(__STDC_IEC_559__)` → iso9x** (the `fegetenv/feholdexcept +
+   fesetround(FE_DOWNWARD/UPWARD)` dance) → msc-asm → **else → `void`**,
+   whose `downward() {} upward() {} tonearest() {}` are literally empty
+   (bodies printed, `runs/K-mechanism.txt`).
+2. `config.hpp`'s force-define of the macro is **commented out (lines
+   14-18), byte-identical mac+linux** → dead on both sides (Pkb's
+   "flag/config plumbing" reading falsified: `-frounding-math` defines
+   the macro nowhere; it's plumbed fine everywhere).
+3. The macro's *declared* value is an ecosystem property:
+   **glibc/libstdc++ declares it (linux g++ natively =1; linux clang-14
+   goes 0→1 through `<iostream>`); neither mac toolchain+libc++ chain ever
+   does (0,0)** ⇒ darwin selects **void** → NO rounding control ever set
+   → interval endpoints round to nearest → **non-rigorous intervals on
+   macOS, under all compilers tested (2-of-2 nearest), rigorous on
+   linux (2-of-2 outward)** — exact 2×2 grid match.
+4. `fesetround` itself works on darwin (T-h follow-on) → the fix is a
+   macro/selector-level environment claim, not an OS defect; and the
+   claim is *true* on this hardware (probe proved directed rounding
+   works when selected).
+Consequences: C1 wrong-`unsat`-with-witness cluster has its mechanism;
+pure-linear `github_issue_192` (T-c's dead-end at libm altitude)
+explains itself at arithmetic level; T-i's gcc-nearest and T-j's
+clang14-outward both fall out; T-e's 6 remain outside rounding (its
+cells link gcc-11-built ibex = native macro = iso9x). Session-1 linux
+nm-of-0 (`runs/T-j-*`) recorded as a capture anomaly, superseded by the
+fresh session's 3 refs. Artifact: `runs/K-mechanism.txt`.

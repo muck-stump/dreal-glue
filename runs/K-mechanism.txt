@@ -1,0 +1,50 @@
+== K mechanism dossier (step 3) ==
+-- selector chain (rounding_control_double.hpp:78-91):
+// include platform specific rounding code
+
+// use asm inline code for GNU-Assembler on SPARC
+#if defined(__GNUC__) && defined(__sparc)
+#include <rounding_control/rounding_control_double_asmsparc.icc>
+
+// rounding conforming to C9X, should be available on recent systems
+#elif defined(__STDC_IEC_559__)
+#include <rounding_control/rounding_control_double_iso9x.icc>
+
+// ms vc
+#elif defined(_MSC_VER) && (defined(__i386__) || defined(WIN32))
+#include <rounding_control/rounding_control_double_asmmsvci386.icc>
+
+// non native rounding
+#else
+#include <rounding_control/rounding_control_double_void.icc>
+
+-- config.hpp force-define is COMMENTED OUT (lines 14-18), identical bytes mac+linux:
+// ISO C99 rounding functions
+/*
+#if ! defined(__STDC_IEC_559__)
+#define __STDC_IEC_559__
+#endif
+*/
+#endif
+-- void strategy = empty bodies (rounding_control_double_void.icc):
+			inline void rounding_control<double,C>::downward() 
+			{}
+			/**
+--
+			inline void rounding_control<double,C>::tonearest() 
+			{}
+			/**
+-- iso9x strategy = fegetenv/feholdexcept + fesetround dance (…iso9x.icc):
+				feholdexcept(&env);
+				/**
+				 * XXX set precision...
+--
+				fesetround(FE_DOWNWARD);
+			}
+
+--
+-- __STDC_IEC_559__ matrix (raw / after <iostream>):
+  mac-apple=0/0  mac-gcc16=0/0  linux-g++=1/1  linux-clang14=0/1
+-- -H: main-header chain icc: mac-apple=void mac-gcc16=void linux-g++=iso9x linux-clang14=iso9x
+-- built libs fe*-refs: mac-harness=0 mac-gcc16=0 linux-gcc11(image)=3 linux-clang14(fresh)=3   [session-1 nm-of-/art read 0 — treated as glob-capture anomaly, superseded by fresh session; footnote]
+-- value rows: mac×2=nearest(…333)   linux×2=outward(…334); OS-level fesetround works on BOTH (runs/T-h-fenv.txt)
