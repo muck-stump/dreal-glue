@@ -419,3 +419,21 @@ Mac's translation is not the mechanism.
   darwin layer as a whole; **present (≥10)** ⇒ LLVM-family codegen is
   implicated and the apple-vs-llvm split becomes the next axis (clang-14
   vs clang-21 version skew noted as a caveat either way).
+
+**T-d attempt 1 (recorded as-is): BUILD COLLAPSE.** One mechanical cause,
+264×: bazel's apple config injects `-mmacos-version-min=11.0` (Apple-clang
+dialect); gcc-16 demands `-mmacosx-version-min=` and dies before compiling
+anything (122/445 executed = only python/cpplint targets; `failed.txt` 5-of-323
+= the known under-listing pattern, caught by the completeness check this round
+added). Not evidence about the hypothesis — infrastructure.
+
+**T-d amendment (registered BEFORE attempt 2):** identical trial plus
+`harness/shim-bin/gcc-16-compat` — a dialect shim that translates the one
+deployment-target flag and drops six clang-only *warning* switches
+(-Wthread-safety, -Wself-assign, -fcolor-diagnostics,
+-Winconsistent-missing-override, -Wreturn-stack-address,
+-no-canonical-prefixes), all shaken out mechanically against the exact
+argv list. Semantics of the trial unchanged: same code, same -O2, same
+Darwin SDK/libm, gcc-16 codegen for both ibex and dreal.
+**Score branches identical to the original registration** (≥15 of 22 fail
+→ darwin side; ≤3 → Apple-clang compilation path).

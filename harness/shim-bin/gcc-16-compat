@@ -1,0 +1,29 @@
+#!/usr/bin/env bash
+#
+# T-d trial shims (hypotheses.md): run cell C's bazel with brew gcc-16.
+#
+# bazel's apple config glues Apple-clang dialect into every CppCompile
+# (`-mmacos-version-min=11.0`) plus clang-only warning switches. gcc spells
+# the deployment-target flag differently and rejects the warning names
+# outright (see the shakeout record in report.md, T-d). This shim translates
+# the one semantic flag and drops the six purely-diagnostic ones — the code
+# under test, optimization level, and machine are untouched. Named
+# gcc-16-compat / g++-16-compat (symlink); dispatch on $0.
+set -euo pipefail
+
+case "$0" in
+  *g++*) real=/opt/homebrew/bin/g++-16 ;;
+  *)     real=/opt/homebrew/bin/gcc-16 ;;
+esac
+
+args=()
+for a in "$@"; do
+  case "$a" in
+    -mmacos-version-min=*) a="-mmacosx-version-min=${a#-mmacos-version-min=}" ;;
+    -Wthread-safety|-Wself-assign|-fcolor-diagnostics|\
+    -Winconsistent-missing-override|-Wreturn-stack-address|\
+    -no-canonical-prefixes) continue ;;
+  esac
+  args+=("$a")
+done
+exec "$real" "${args[@]}"
