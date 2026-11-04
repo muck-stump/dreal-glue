@@ -140,8 +140,6 @@ in the bazel test summary table (`NO STATUS` = couldn't build under `-k`).
       `get_value_01` env-caused, `timer_test` flaky)
 - [ ] conclusions folded into `dreal4/README.md` as docs commits
       *(maintainer step — submodule intentionally untouched so far)*
-- [ ] optional tier-0 smoke: prebuilt `dreal/dreal4` image on the failing
-      cell-C inputs (indicative only)
 - [ ] optional follow-up round: fix `gmp_repository.bzl` arch probe as a
       normal dreal4 commit → new pin → fresh A'/B' pair
 - [ ] optional tier-0 smoke: prebuilt `dreal/dreal4` image on the failing
