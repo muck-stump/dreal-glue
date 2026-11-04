@@ -74,7 +74,7 @@ fi
 # On gcc-11/aarch64: -frounding-math and -ffloat-store compile (configure
 # probes pass), -msse3 fails but the wscript probes it mandatory=False with
 # -msse2/plain fallbacks — verified safe.
-CXXFLAGS=-std=c++0x "$WAF_PY" ./waf configure \
+CXXFLAGS="${CXXFLAGS:--std=c++0x}" "$WAF_PY" ./waf configure \
     --enable-shared --with-optim --with-solver --with-affine-extended \
     --interval-lib=filib --lp-lib=clp --prefix="${PREFIX}"
 "$WAF_PY" ./waf install

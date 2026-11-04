@@ -350,3 +350,38 @@ would remove it); `install-ibex.sh` now rewrites the id post-install, and a
 `bazel clean` was needed once because link actions do not declare `-L`
 directories as inputs (stale link keeps the old id until outputs are
 invalidated — checked: fixed binary now records the prefix path).
+
+**T-b prediction (pre-registered BEFORE the run): today's cell C recipe
+plus `-ffp-contract=off` on both halves we control (dreal via CLI copt,
+harness-built ibex rebuilt with `CXXFLAGS=-std=c++0x -ffp-contract=off`).**
+Scoring against the frozen previous C list (`git status` shows 22 fails =
+14 C1 + 3 mixed + 2 C3 + get_value_01, minus nothing; rosenbrock pair =
+423/445 baseline):
+- **≥15 of those 22 flip** → H1 (contraction usage in this Mac's
+  translation) supported;
+- **≤3 flip** → H1 falsified on the Mac too (post-T-a lean: this branch);
+- 4–14 → partial: re-split survivors against C1/C2/C3/C4 classes → likely
+  ≥2 mechanisms.
+`timer_test` excluded (flake), C2 pair may legally stay (both-legal),
+`get_value_01` scored but tolerated as libm-ish.
+
+## Round 5 — trial T-a (record, no prediction needed) and T-b's registration
+
+**T-a result (recorded after the fact — it was a measurement, not a run):**
+compile-command inventory for one shared TU on cell C vs cell D
+(`runs/T-a-compile-flags.txt`): explicit flags differ only in
+diagnostics/defines (`_DARWIN_C_SOURCE`, `-fcolor-diagnostics`,
+mac-only `-D_FORTIFY_SOURCE=1`, warning toggles) — **nothing FP-semantic
+(`-ffast-math`, `-ffp-contract`, `-fno-*`) is set on either side**, so
+results ride on tool defaults; both compile `-O2`. Default probes
+(`a*b+c` same-expression vs statement-split, ARM64, `-O2`, metamorphic
+`a*b+c` fusion count):
+- apple clang (cell C): same-expr fused (1 fmadd), cross-statement NOT fused
+  (= `-ffp-contract=on`-like default); `-ffp-contract=fast` fuses both (2).
+- brew gcc-16 (mac): both fuse (2) — `fast`-like default.
+- container gcc-13 (cell D): both fuse (2) — `fast`-like default.
+⇒ the tool that fuses *more aggressively* (linux/gcc) is the clean one;
+plain fusion is therefore not a mac-vs-linux differentiating factor a
+priori, **lowering** H1's prior before T-b runs. Kept in the plan because
+*which sites* each backend fuses still differs, and T-b is the decisive
+mac-side intervention for H1.

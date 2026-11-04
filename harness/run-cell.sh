@@ -51,6 +51,9 @@ if [ "$(cell_kind "$CELL")" = host ]; then
     echo "  build it:  PREFIX=\"$CELL_C_IBEX_PREFIX\" WAF_PY=/opt/homebrew/bin/python3.10 harness/install-ibex.sh" >&2
     exit 1; }
   export PATH="$ROOT/harness/shim-bin:$PATH"
+  # Trial hook (hypotheses.md T-b/…): extra bazel CLI args, host cell only,
+  # passed through from the invoking shell — normal runs pass none.
+  export BAZEL_EXTRA_ARGS="${CELL_BAZEL_EXTRA_ARGS:-}"
   (cd "$ROOT/dreal4" && bazel shutdown >/dev/null 2>&1) || true
 
   STAGE="$ROOT/runs/.stage-$CELL"

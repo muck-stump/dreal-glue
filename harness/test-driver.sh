@@ -30,7 +30,9 @@ rc=0
 # --cache_test_results=no: every test must actually re-execute — replaying a
 # cached FAILED (known timing flake //dreal/util:timer_test) would fake a
 # deterministic result. Tests are fast; the compilation cache does stay warm.
+export BAZEL_EXTRA_ARGS=""
 bazel --host_jvm_args=-Xmx1500m test -k --cache_test_results=no \
+  ${BAZEL_EXTRA_ARGS:-} \
   --jobs=4 --local_cpu_resources=4 --local_ram_resources=6000 \
   //... 2>&1 | tee "$WORK/bazel-test.log" || rc=$?
 
