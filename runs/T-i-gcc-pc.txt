@@ -1,0 +1,3 @@
+# T-i: ibex-352eeeb built with g++-16 (T-d recipe, IBEX_CSTDINT_FIX=1)
+pc cflags: -I/Users/josh/.local/opt/ibex-352eeeb-gcc/include -I/Users/josh/.local/opt/ibex-352eeeb-gcc/include/ibex -I/Users/josh/.local/opt/ibex-352eeeb-gcc/include/ibex/3rd -frounding-math -I/opt/homebrew/Cellar/clp/1.17.11/include/clp/coin -I/opt/homebrew/Cellar/coinutils/2.11.13/include/coinutils/coin
+pc libs:   -L/Users/josh/.local/opt/ibex-352eeeb-gcc/lib -libex -L/opt/homebrew/Cellar/clp/1.17.11/lib -lClpSolver -lClp -L/opt/homebrew/Cellar/coinutils/2.11.13/lib -lCoinUtils -lbz2 -lz -L/opt/homebrew/opt/openblas/lib -lopenblas -lm

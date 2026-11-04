@@ -756,3 +756,25 @@ signature rows: `sqr` lb, `tiny` lb, `div` ub).
   22.
 Both branches keep the 6-test linux-clang slice for T-j(step 2).
 Artifacts: `runs/T-i-*.txt`.
+
+**T-i SCORED — P1b TAKEN.** g++-16-built `ibex-352eeeb` on this Mac (T-d
+recipe, receipts: `-frounding-math` present in `pkg-config --cflags`,
+`-ffp-contract=off`, linked against the rebuilt `libibex.dylib`)
+produces **byte-identical nearest values to the apple-clang build**
+(`add …333`, `sqr …47c`, `point …47c`, `tiny …2a`); Linux-gcc = outward
+(`add …334`, `sqr …47b`, `tiny …29`). Reading:
+1. **The T-d collision is resolved, in the theory's favor**: rounding-
+   loss is *not* compiler-specific — two different mac-compiled compilers
+   with the honest flag both round nearest; both Linux compilers round
+   outward. Seam = darwin × (ibex idiom or darwin×compile-of-that-idiom).
+2. The consumer-flag theory is dead too (the receipt shows the probe
+   consumed `-frounding-math` and still lost).
+3. Standing contrast driving step 3: plain `fesetround` probe (T-h
+   follow-on, `runs/T-h-fenv.txt`) *works* on darwin — so general POSIX
+   rounding works, while arithmetic *inside ibex's rounding-control
+   pattern* does not take effect. Difference-maker must be inside
+   `ibex/3rd/rounding_control/*` — an `__APPLE__`-style branch or
+   different dance — headers reviewed for `#if` selection next
+   (step 3), and mac headers are byte-identical to linux's (T-h A1),
+   so whatever diverges is a *preprocessor define*, not text.
+Artifacts: `runs/T-i-gcc-pc.txt`, `runs/T-i-rounding.txt`.
