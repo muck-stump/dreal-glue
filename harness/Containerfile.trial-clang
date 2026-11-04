@@ -8,5 +8,14 @@ FROM dreal-ref:22.04
 RUN apt-get update -qq && apt-get install -y --no-install-recommends clang \
     && rm -rf /var/lib/apt/lists/*
 
-ENV CC=clang \
-    CXX=clang++
+# Dialect shim (attempt-2 registration in report.md): clang-14 doesn't know
+# -Wno-deprecated-builtins and -Werror turns its verbose refusal into a build
+# break; every gcc cell silently ignores unknown -Wno-* flags. Drop that one
+# option name (shaken out against a real action's full -W set) so the trial
+# measures the compiler family, not a flag spelling.
+COPY harness/shim-clang/clang-14-compat /usr/local/bin/clang-14-compat
+COPY harness/shim-clang/clang++-14-compat /usr/local/bin/clang++-14-compat
+RUN chmod +x /usr/local/bin/clang-14-compat /usr/local/bin/clang++-14-compat
+
+ENV CC=/usr/local/bin/clang-14-compat \
+    CXX=/usr/local/bin/clang++-14-compat

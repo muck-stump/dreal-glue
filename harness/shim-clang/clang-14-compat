@@ -1,0 +1,21 @@
+#!/usr/bin/env bash
+#
+# T-e trial wrapper (hypotheses.md): clang-14 in the trial image, with the
+# warning options newer clangs know dropped from a dreal-authored copt list.
+# clang 14 (jammy default) rejects unknown -Wno-* under -Werror; gcc (every
+# real cell) silently ignores them — the asymmetry this shim removes so the
+# *compiler family* delta can be measured instead of a flag-name delta.
+# Dispatch on $0: clang-14-compat / clang++-14-compat.
+set -euo pipefail
+case "$0" in
+  *++*) real=/usr/lib/llvm-14/bin/clang++ ;;
+  *)    real=/usr/lib/llvm-14/bin/clang ;;
+esac
+args=()
+for a in "$@"; do
+  case "$a" in
+    -Wno-deprecated-builtins) continue ;;
+  esac
+  args+=("$a")
+done
+exec "$real" "${args[@]}"
