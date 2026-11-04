@@ -1,13 +1,13 @@
 # dreal4 cell status
 
-Generated: `2026-11-04T05:23:35Z` by `harness/summary.sh` — do not edit;
+Generated: `2026-11-04T05:45:00Z` by `harness/summary.sh` — do not edit;
 regenerated after every run (`harness/run-all.sh`). Evidence lives in git.
 
 | cell | code | environment | result |
 |---|---|---|---|
 | A | `f93bdcc` — original code | ubuntu 22.04 reference container (podman) | **445/445 PASS ✓** |
 | B | `e6d31b4` — modernized | ubuntu 22.04 reference container (podman) | **1/445 failing ✗** |
-| C | `51c93b9` — modernized (submodule pin) | this Mac, host cell (macOS 27.0.1, Apple Silicon) | **22/445 failing ✗** |
+| C | `51c93b9` — modernized (submodule pin) | this Mac, host cell (macOS 27.0.1, Apple Silicon) | **23/445 failing ✗** |
 | D | `e6d31b4` — modernized | ubuntu 24.04 container (podman) | **1/445 failing ✗** |
 | E | `e6d31b4` — modernized | fedora 43 container (podman) | **1/445 failing ✗** |
 
@@ -20,7 +20,7 @@ code-vs-code divergence.
 //dreal/util:timer_test
 ```
 
-## Cell C —       22 failing target(s)
+## Cell C —       23 failing target(s)
 ```
 //dreal/api:api_test
 //dreal/api:cav18_benchmark_with_local_opt
@@ -44,6 +44,7 @@ code-vs-code divergence.
 //dreal/test/smt2:github_issue_192
 //dreal/test/smt2:github_issue_201
 //dreal/test/smt2:minimize_03
+//dreal/util:timer_test
 ```
 
 ## Cell D —        1 failing target(s)

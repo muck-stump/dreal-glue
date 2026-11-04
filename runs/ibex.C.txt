@@ -1,4 +1,3 @@
-# cell C ibex resolution (queried thru harness/shim-bin/pkg-config)
-IBEX_PC_DIR=/Users/josh/.local/opt/ibex-352eeeb/share/pkgconfig
+# cell C ibex resolution (stock PATH pkg-config (base config: Homebrew ibex@2.7.4_13))
 modversion: 2.7.4
-libs:       -L/Users/josh/.local/opt/ibex-352eeeb/lib -libex -L/opt/homebrew/Cellar/clp/1.17.11/lib -lClpSolver -lClp -L/opt/homebrew/Cellar/coinutils/2.11.13/lib -lCoinUtils -lbz2 -lz -L/opt/homebrew/opt/openblas/lib -lopenblas -lm
+libs:       -L/opt/homebrew/opt/ibex@2.7.4/lib -libex -L/opt/homebrew/Cellar/clp/1.17.11/lib -lClpSolver -lClp -L/opt/homebrew/Cellar/coinutils/2.11.13/lib -lCoinUtils -lbz2 -lz -L/opt/homebrew/opt/openblas/lib -lopenblas -lm
