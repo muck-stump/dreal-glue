@@ -26,6 +26,7 @@ if [ "$(cell_kind "$CELL")" = host ]; then
   cp "$STAGE/bazel-test.log"   "$ROOT/runs/bazel-test.$CELL.log"
   cp "$STAGE/exit-code.txt"    "$ROOT/runs/exit-code.$CELL.txt"
   cp "$STAGE/completeness.txt" "$ROOT/runs/completeness.$CELL.txt"
+  [ -f "$STAGE/ibex.txt" ] && cp "$STAGE/ibex.txt" "$ROOT/runs/ibex.$CELL.txt"
   {
     echo "# cell $CELL environment manifest (host cell: this Mac, bare metal)"
     echo "# commit under test: $(git -C "$ROOT/dreal4" rev-parse HEAD)"

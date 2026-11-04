@@ -88,6 +88,14 @@ PC="${PREFIX}/share/pkgconfig/ibex.pc"
 sed -e 's/ -msse3//g; s/ -ffloat-store//g' "${PC}" > "${PC}.tmp"
 mv "${PC}.tmp" "${PC}"
 
+# macOS only: waf installs the dylib keeping its *build-tree* install name
+# (/var/folders/.../__build__/src/libibex.dylib — a temp dir macOS eventually
+# purges: the resulting binaries run only until then). Rewrite the id to the
+# installed path so every later link against this prefix is self-contained.
+if command -v install_name_tool >/dev/null; then
+  install_name_tool -id "${PREFIX}/lib/libibex.dylib" "${PREFIX}/lib/libibex.dylib"
+fi
+
 # Sanity: exactly the probe dreal/workspace.bzl will run (its Linux entry
 # "/opt/libibex/2.7.4/share/pkgconfig"), plus no x86 leftovers.
 version="$(PKG_CONFIG_PATH="${PREFIX}/share/pkgconfig" pkg-config --modversion ibex)"

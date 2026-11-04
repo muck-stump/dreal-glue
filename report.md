@@ -318,3 +318,35 @@ pass** once mac runs the Linux cells' ibex commit. Predictions by class
 split the survivors against the C1/C2/C3/C4 classes above.
 
 Score of this round recorded below after the run.
+
+### Round 4 score — **FALSIFIED** (0 of 22, not ≥19 of 22)
+
+Measured after the swap (three cell C runs, identical cluster each time;
+last run also absorbed the `install_name` hardening below, and reproduced
+the prediction's own flake split: `timer_test` failed in run 1, passed in
+runs 2–3 — stochastic, uncounted). `runs/ibex.C.txt` records the run's
+believed ibex (`-L/Users/josh/.local/opt/ibex-352eeeb/lib`), triple-checked:
+
+1. fetched `@ibex` repo's generated BUILD bakes our prefix (includes under
+   `_Users_josh_.local_opt_ibex-352eeeb_*`, `-L` ours);
+2. full cflags byte-match Homebrew's modulo the prefix (including
+   `-frounding-math`) — the resolved configuration differs *only* in commit;
+3. `otool -L` of the linked test binary resolves
+   `/Users/josh/.local/opt/ibex-352eeeb/lib/libibex.dylib`.
+
+**Verdict: the ibex *source commit* (`26eeeaa` vs `352eeeb`) is not the
+mechanism.** All prediction classes failed to flip, including the 14 C1
+"unsat-not-licensed" targets — so same-source-same-compiler-parity does not
+move the cluster on this Mac. (Mechanism pointer from here: what macOS
+changes that every Linux cell shares substitutes neither for — Apple clang
+codegen + `-ffp-contract` defaults in dreal's *own* translation units, and
+Apple libm (glibc-vs-libm `sin/exp/pow` in ibex/dreal evaluation). Reverse
+arm — Linux cells against Homebrew's `26eeeaa` — pre-agreed next after this
+one, flag/libm bisect (old step 5) after that.)
+
+Hardening recorded: waf leaves the dylib's install name pointing at the
+temp build directory (tests ran only until macOS's `/var/folders` purge
+would remove it); `install-ibex.sh` now rewrites the id post-install, and a
+`bazel clean` was needed once because link actions do not declare `-L`
+directories as inputs (stale link keeps the old id until outputs are
+invalidated — checked: fixed binary now records the prefix path).

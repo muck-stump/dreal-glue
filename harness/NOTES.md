@@ -298,3 +298,29 @@ failures when builds abort before per-target rows — completeness.txt's own
 now flags `ERROR: Build did NOT complete` inside completeness.txt.
 Rule for the future: **letters never change again; volumes and letters are
 one identity.**
+
+## Round 4: the ibex swap (cell C) — done, falsified, and its landmines
+
+Cell C ran dreal against the Linux cells' ibex commit `352eeeb` instead of
+Homebrew's `2.7.4_13`/`26eeeaa`. Lever: none env- or list-based exists
+(pkg_config.bzl overwrites PKG_CONFIG_PATH from workspace.bzl's committed
+list, `environ = ["PATH"]` only, no passwordless sudo for a shadow prefix) —
+so `harness/shim-bin/pkg-config`, prepended to PATH for host cell C only by
+run-cell.sh (with a bazel shutdown so PATH reaches the repo rule), prepends
+the harness build's `.pc` dir and *requires* IBEX_PC_DIR (fail-loud, never
+silent brew fallback).
+
+Landedmine log from the swap itself:
+- waf's `waf install` keeps the temp build-tree install_name in libibex.dylib:
+  binary would run until macOS purges /var/folders/... — fixed post-install
+  with install_name_tool in install-ibex.sh; already-linked binaries need a
+  `bazel clean` (link actions do not declare -L dirs, so nothing else
+  invalidates them). Evidence: otool now records the prefix path.
+- `sha256sum -c` over stdin and `sed -i` (no suffix) are GNU-only; both
+  replaced with portable forms in install-ibex.sh.
+- macOS has no wget: curl fallback in the same script.
+
+Outcome: 0/22 flip across three runs (prediction ≥19/22, pre-registered in
+report.md round 4 before the build existed): ibex *source* exonerated;
+remaining mechanism axis = Apple clang / -ffp-contract / Apple libm of this
+Mac vs every Linux cell. Reverse arm (Linux on 26eeeaa) stay next per plan.

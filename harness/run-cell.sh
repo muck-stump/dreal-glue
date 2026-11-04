@@ -55,6 +55,14 @@ if [ "$(cell_kind "$CELL")" = host ]; then
 
   STAGE="$ROOT/runs/.stage-$CELL"
   rm -rf "$STAGE"; mkdir -p "$STAGE"
+  # Record *which* ibex this run resolved (thru the shim) — the evidence that
+  # the swap is in effect, harvested by collect.sh into runs/ibex.<cell>.txt.
+  {
+    echo "# cell $CELL ibex resolution (queried thru harness/shim-bin/pkg-config)"
+    echo "IBEX_PC_DIR=$IBEX_PC_DIR"
+    echo "modversion: $(pkg-config --modversion ibex 2>&1 || true)"
+    echo "libs:       $(pkg-config --libs ibex 2>&1 || true)"
+  } > "$STAGE/ibex.txt"
   echo "cell $CELL (host): testing $HEAD_SHA at $ROOT/dreal4"
   rc=0
   "$ROOT/harness/test-driver.sh" "$STAGE" "$ROOT/dreal4" || rc=$?
