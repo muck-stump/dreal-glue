@@ -536,3 +536,10 @@ the gap):
    (its 6 extras and swings come from that heterogeneous link chain); T-e's
    shim dropped exactly one gcc-lnfluent line copt validated by the
    445/445-executed outcome; clang-14 vs apple-clang-21 version skew.
+
+**Bookkeeping:** after scoring, cell C was restored to its canonical
+recipe (default-tuning harness-ibex@352eeeb rebuild without trial
+`CXXFLAGS`, apple-clang, no extra copts) and re-measured: 445/445
+executed, fails = the frozen 22 + that run's known `timer_test` flake —
+0 cluster drift. `runs/ibex.C.txt` records resolution; `hypotheses.md`
+carries the leadger and ranked open questions.

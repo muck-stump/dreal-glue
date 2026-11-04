@@ -1,15 +1,15 @@
 # dreal4 cell status
 
-Generated: `2026-11-04T04:43:55Z` by `harness/summary.sh` — do not edit;
+Generated: `2026-11-04T04:52:59Z` by `harness/summary.sh` — do not edit;
 regenerated after every run (`harness/run-all.sh`). Evidence lives in git.
 
 | cell | code | environment | result |
 |---|---|---|---|
 | A | `f93bdcc` — original code | ubuntu 22.04 reference container (podman) | **445/445 PASS ✓** |
 | B | `e6d31b4` — modernized | ubuntu 22.04 reference container (podman) | **1/445 failing ✗** |
-| C | `51c93b9` — modernized (submodule pin) | this Mac, host cell (macOS 27.0.1, Apple Silicon) | **29/445 failing ✗** |
-| D | `e6d31b4` — modernized | ubuntu 24.04 container (podman) | **suspect ✗** (bazel says 29 failing, failed.txt lists 1 — see log) |
-| E | `e6d31b4` — modernized | fedora 43 container (podman) | **suspect ✗** (bazel says 29 failing, failed.txt lists 1 — see log) |
+| C | `51c93b9` — modernized (submodule pin) | this Mac, host cell (macOS 27.0.1, Apple Silicon) | **23/445 failing ✗** |
+| D | `e6d31b4` — modernized | ubuntu 24.04 container (podman) | **1/445 failing ✗** |
+| E | `e6d31b4` — modernized | fedora 43 container (podman) | **1/445 failing ✗** |
 
 **A vs B: identical apart from the known `timer_test` timing flake** (recorded in
 failed lists when it flakes; pre-registered category — see report.md). No
@@ -20,12 +20,11 @@ code-vs-code divergence.
 //dreal/util:timer_test
 ```
 
-## Cell C —       29 failing target(s)
+## Cell C —       23 failing target(s)
 ```
 //dreal/api:api_test
 //dreal/api:cav18_benchmark_with_local_opt
 //dreal/api:cav18_benchmark_without_local_opt
-//dreal/contractor:contractor_ibex_fwdbwd_test
 //dreal/test/dr:constrained_opt_rosenbrock_cubic
 //dreal/test/dr:constrained_opt_rosenbrock_disk
 //dreal/test/dr:unconstrained_opt_beale
@@ -33,10 +32,7 @@ code-vs-code divergence.
 //dreal/test/dr:unconstrained_opt_mccormick
 //dreal/test/dr:unconstrained_opt_poly1
 //dreal/test/python:api_test
-//dreal/test/python:contractor_test
 //dreal/test/python:github_issue_154
-//dreal/test/python:solver_test
-//dreal/test/python:symbolic_test
 //dreal/test/smt2:ea_01
 //dreal/test/smt2:ea_beale
 //dreal/test/smt2:exist_forall_04
@@ -48,9 +44,7 @@ code-vs-code divergence.
 //dreal/test/smt2:github_issue_192
 //dreal/test/smt2:github_issue_201
 //dreal/test/smt2:minimize_03
-//dreal/util:cds_test
 //dreal/util:timer_test
-//test:cds_priority_queue_test
 ```
 
 ## Cell D —        1 failing target(s)

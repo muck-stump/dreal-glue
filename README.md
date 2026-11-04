@@ -36,7 +36,7 @@ Matrix (a "cell" = code × environment):
 |---|---|---|---|
 | A | base `f93bdcc` (original, pre-modernization) | ubuntu 22.04 reference container | **measured: 445/445 pass** |
 | B | `e6d31b4` (`modernize-macos`) | ubuntu 22.04 reference container | **measured: 445/445 pass** |
-| C | `51c93b9` (= modernized + macOS pin/docs commits; the submodule pin) | this Mac (macOS, Apple Silicon), Python **3.14 pinned** | **445/445 executed, 423 pass / 22 fail** — the "unsat cluster" + 1 ULP, both below |
+| C | `51c93b9` (= modernized + macOS pin/docs commits; the submodule pin) | this Mac (macOS, Apple Silicon), Python **3.14 pinned** | **445/445 executed; 22-failure cluster + ULP below** (last measurement 422/23: cluster + the known `timer_test` flake; ibex `352eeeb` after round 5) |
 | D | `e6d31b4` (same code as B) | **Ubuntu 24.04** container (gcc 13, Python 3.12, gmp 6.3.0) | **measured: 444/445 pass**, 1 unbuildable (GCC≥13 `-Wdangling-reference` under `-Werror`), behavioural diff vs B = none |
 | E | `e6d31b4` (same code as B) | **Fedora 43** container (gcc 15, Python 3.14, nlopt 2.10) | **measured: 443/445** (same build failure + `timer_test` flake), behavioural diff vs B = none |
 
@@ -54,6 +54,11 @@ Linux cell builds (`352eeeb`) — harness `pkg-config` shim, Homebrew and
 the checkout untouched. The 22-failure cluster **did not move**: the ibex
 commit is exonerated as the mechanism (`report.md`, round 4; evidence of
 what each run believed: `runs/ibex.C.txt`).
+
+Round 5 (`hypotheses.md`, executed & scored): contraction-off, libm probe,
+gcc-16-on-Mac, clang-on-Linux. Outcome grid: Darwin gives the full 22 under
+*either* compiler; Linux+clang-14 reproduces 6/22; Linux+gcc never any —
+Darwin is the dominant axis and clang-family a 6-target slice (`report.md`).
 
 Three comparisons, three questions:
 

@@ -1,4 +1,4 @@
 # cell C ibex resolution (queried thru harness/shim-bin/pkg-config)
-IBEX_PC_DIR=/Users/josh/.local/opt/ibex-352eeeb-gcc/share/pkgconfig
+IBEX_PC_DIR=/Users/josh/.local/opt/ibex-352eeeb/share/pkgconfig
 modversion: 2.7.4
-libs:       -L/Users/josh/.local/opt/ibex-352eeeb-gcc/lib -libex -L/opt/homebrew/Cellar/clp/1.17.11/lib -lClpSolver -lClp -L/opt/homebrew/Cellar/coinutils/2.11.13/lib -lCoinUtils -lbz2 -lz -L/opt/homebrew/opt/openblas/lib -lopenblas -lm
+libs:       -L/Users/josh/.local/opt/ibex-352eeeb/lib -libex -L/opt/homebrew/Cellar/clp/1.17.11/lib -lClpSolver -lClp -L/opt/homebrew/Cellar/coinutils/2.11.13/lib -lCoinUtils -lbz2 -lz -L/opt/homebrew/opt/openblas/lib -lopenblas -lm
