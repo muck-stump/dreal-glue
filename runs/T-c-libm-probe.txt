@@ -1,0 +1,15 @@
+# T-c: libm probe — harness/probe-libm.py (same expr, system libm both sides)
+# mac: Python 3.14.10 on 27.0.1; linux: Python 3.12.3 in dreal-ref:24.04
+# platform libm behind python: darwin libSystem vs glibc 2.39 (ubuntu 24.04)
+# lines: 44 args x 10 exprs
+# result:
+  observed: 12 of 420 points differ in bits; max ulp distance = 1 (worst: atan 1.1071487177940906 vs ...904); nan disagreements: 0
+# verdict vs pre-registration (>4 ulp => H2 gains): BOUND HELD -> libm divergence real-but-tiny; github_issue_192 (pure linear) stays unexplained by raw tables
+
+# paired (mac|linux) transcript, field: ARG EXPR hex(bits):
+0 sin 0 0000000000000000
+0 cos 1 3ff0000000000000
+0 exp 1 3ff0000000000000
+0 sqrt 0 0000000000000000
+0 atan 0 0000000000000000
+  [...] (full transcripts differ at 12 rows only; see count above)
