@@ -54,6 +54,7 @@ if [ "$(cell_kind "$CELL")" = host ]; then
   # Trial hook (hypotheses.md T-b/…): extra bazel CLI args, host cell only,
   # passed through from the invoking shell — normal runs pass none.
   export BAZEL_EXTRA_ARGS="${CELL_BAZEL_EXTRA_ARGS:-}"
+  [ -n "${CELL_BAZEL_EXTRA_ARGS:-}" ] && echo "  trial extra bazel args: $CELL_BAZEL_EXTRA_ARGS"
   (cd "$ROOT/dreal4" && bazel shutdown >/dev/null 2>&1) || true
 
   STAGE="$ROOT/runs/.stage-$CELL"
