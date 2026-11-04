@@ -385,3 +385,37 @@ plain fusion is therefore not a mac-vs-linux differentiating factor a
 priori, **lowering** H1's prior before T-b runs. Kept in the plan because
 *which sites* each backend fuses still differs, and T-b is the decisive
 mac-side intervention for H1.
+
+**T-b score: H1 falsified.** Trial ran with the echoed receipt
+`trial extra bazel args: --copt=-ffp-contract=off` (ibex also rebuilt with
+`CXXFLAGS=-std=c++0x -ffp-contract=off`): failed set = frozen baseline's 22
+**unchanged, 0 flips** (only `timer_test` appeared — its flake, excluded).
+≤3-flip branch of the pre-registration taken: contraction usage in this
+Mac's translation is not the mechanism.
+
+## Round 5 — T-c, T-d, T-e predictions (registered before any of them run)
+
+- **T-c** (libm value probe, mac python3 vs container python3, same
+  expressions: sin/cos/exp/pow/sqrt/log at cluster-relevant arguments —
+  eggholder scales, Ackley `exp(-0.02·√)` sums, π-adjacent, near-zero):
+  **P(falsifiable form): every probe point differs by ≤ 4 ulp.** Split:
+  >4 ulp anywhere ⇒ H2 (Darwin vs glibc libm) gains sharply; ≤4 everywhere
+  with cluster absent/present elsewhere ⇒ libm divergence is real but
+  far too small to own the linear-arithmetic `github_issue_192` ⇒ we rank
+  OS-layer/compiler interplay above raw libm tables.
+- **T-d** (same Mac, brew `gcc-16` for BOTH halves: ibex re-built with
+  g++, dreal bazel toolchain via `CC=gcc-16`; Darwin/libm/SDK held):
+  **P: the cluster persists (≥15 of 22 still fail)** — and the score
+  branches: **persist** ⇒ mechanism is darwin-side (OS/SDK/libm/library
+  interplay), compiler vendor exonerated on this Mac; **cleans (≤3 fail)**
+  ⇒ mechanism is the Apple-clang compilation path, and the candidate C
+  recipe fix becomes a `.bazelrc` macos `--repo_env=CC` pin (same pattern
+  as the Python 3.14 pin).
+- **T-e** (ubuntu 22.04 reference environment — cell A/B's exact image +
+  packages — with `clang` substituted for gcc as toolchain; B's commit,
+  cell-B environment otherwise byte-identical): **P: cluster remains
+  absent (≤2 fail).** Branches: **absent** ⇒ clang-family alone is not
+  sufficient; combined with T-d-persist this hands the finding to the
+  darwin layer as a whole; **present (≥10)** ⇒ LLVM-family codegen is
+  implicated and the apple-vs-llvm split becomes the next axis (clang-14
+  vs clang-21 version skew noted as a caveat either way).
