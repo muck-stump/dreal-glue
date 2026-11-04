@@ -457,3 +457,17 @@ gcc-16/mac too. 64 links then died: bazel's CppLink driver = `gcc`
 **Shim v3 (registered before attempt 4):** append `-lstdc++` on
 link-shaped invocations (detected via absence of -c/-E/-S/--syntax-only) —
 still trial infrastructure; scoring branches unchanged.
+
+**T-d attempt 4 (record):** 185/445 executed. Of the frozen 22: **8 executed
+— all 8 STILL failing under gcc-16 (api_test, cav18×2, rosenbrock pair,
+python api_test/154) — 0 flips among scored targets.** 14 never built
+(they hang off `//dreal:dreal` which failed its final link). All compiles
+pass; the only compile error remains the known `-Wdangling-reference`
+trios. Remaining: 2 links, both one cause: brew's `libgmpxx.4.dylib` is
+clang/libc++-built, gcc-16 references libstdc++-mangled `operator<<` ⇒ ABI
+mismatch between toolchain and Homebrew's C++ dylibs (nlopt/clp/coinutils
+link clean — gmpxx is the only clash).
+
+**Shim v4 (registered before attempt 5):** build gmp (same brew version,
+`--enable-cxx`, CC=gcc-16) into `~/.local/opt/gmp-gcc16`, shim prepends its
+`lib/` on link lines. Trial semantics unchanged; scoring branches unchanged.
