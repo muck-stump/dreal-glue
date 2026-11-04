@@ -64,7 +64,10 @@ tar xzf ibex.tar.gz --strip-components=1
 # IBEX_CSTDINT_FIX=1.
 if [ "${IBEX_CSTDINT_FIX:-0}" = 1 ]; then
   echo "IBEX_CSTDINT_FIX=1: adding <cstdint> includes (GCC >= 13 transitive-include breakage)"
-  sed -i '1i#include <cstdint>' src/data/ibex_Cov.h plugins/solver/src/ibex_CovSolverData.cpp
+  # portable prepend (BSD sed has no GNU `1i\\` line-insert form)
+  for f in src/data/ibex_Cov.h plugins/solver/src/ibex_CovSolverData.cpp; do
+    printf '#include <cstdint>\n' | cat - "$f" > "$f.tmp" && mv "$f.tmp" "$f"
+  done
 fi
 
 # Configure/build exactly as Dockerfile.amazonlinux does (upstream's own
