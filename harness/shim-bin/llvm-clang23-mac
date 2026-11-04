@@ -33,24 +33,22 @@ for a in "$@"; do
 done
 SDKROOT=/Library/Developer/CommandLineTools/SDKs/MacOSX27.sdk
 if [ "$is_probe" = 1 ] && [ "$has_v" = 1 ]; then
-  out=$("$real" "${args[@]}" 2>&1; exit $?)
+  # bazel's parser reads STDERR only, between "#include <...> search starts
+  # here:" and the LAST space-prefixed line (its rfind("\n ")); so: let
+  # stdout flow through untouched, inject the SDK root as the final
+  # space-prefixed line just before "End of search list." on STDERR.
+  errf=$(mktemp)
+  "$real" "${args[@]}" 2>"$errf"
   rc=$?
-  printf '%s\n' "$out" | awk -v r="$SDKROOT" '
-    { print }
-    /^End of search list/ { next }
-    pending && /^$/ { }
-    { if (index($0, "#include <...> search starts here:") == 1) inlist=1 }
-    function noop(){}
-  ' >/dev/null
-  # simpler and structure-preserving: inject before the closing marker
-  printf '%s\n' "$out" | awk -v r="$SDKROOT" '
+  awk -v r="$SDKROOT" '
     { lines[NR] = $0 }
     END {
       for (i = 1; i <= NR; i++) {
         if (lines[i] ~ /^End of search list\./) { print " " r }
         print lines[i]
       }
-    }'
+    }' "$errf" >&2
+  rm -f "$errf"
   exit $rc
 fi
 exec "$real" "${args[@]}"

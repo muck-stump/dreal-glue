@@ -613,3 +613,23 @@ the validator accepts the file that clang itself insists on declaring.
 Run argvs remain byte-identical otherwise. Scoring branches: unchanged
 (4699a23). Brew's Cellar c++ dir is absent from that list too by design
 (attempt-2 header pinning means nothing reaches it).
+
+**T-g attempt 3 (record):** again the same validator abort (122/445), but
+the trace now complete: my probe branch merged stderr+stdout, while
+bazel's parser (`unix_cc_configure.bzl:117`, `result.stderr.find`, then
+`rfind("\n ")` = last space-prefixed line) reads **stderr only** → saw an
+empty region → `builtin_include_directories` collapsed to the sysroot
+fallback singleton `[".../MacOSX.sdk"]` (symlink spelling via xcrun),
+while the driver's own depfile entries spell the realpath
+`MacOSX27.sdk/...` → prefix match fails → SDKSettings.json *and* every
+`usr/include/...` header flagged. Shim fixed to inject the SDK root as the
+final space-prefixed stderr line (stdout untouched); parser replication
+verifies entries survive.
+
+**T-g attempt 4 (registered before running):** identical to attempt 3,
+plus fd-correct shim; fresh `CEL..._CC/CXX` alias paths
+(`llvm-clang23-a4[++]`) guarantee repository reconfigure (marker keys
+off the CC value). Scoring branches unchanged (4699a23). If this attempt
+raises a *novel* validator class, stop and reassess rather than iterating
+further — three infrastructure accommodations has been the honest cost of
+running an untested compiler.
