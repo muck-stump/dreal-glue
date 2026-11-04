@@ -179,3 +179,28 @@ cell D's container, first fork whose double *bit patterns* differ tells
 which of (1)/(2)/(3) it is. T-g cost/credits: 4 attempts, 3 shims, all
 registered before outcomes; cell C restored to canonical recipe and
 re-measured 423/22 (baseline exact).
+
+## Round 6 — strip-back (user-directed): falsified knobs out of the default path
+
+Direction: the trial round is over; nothing falsified should remain a
+*default*. Evidence is append-only — each strip is its own commit, gates
+pre-registered in `report.md` before running, revert-if-regressed owned
+by the caller.
+
+| stripped | where | gate |
+|---|---|---|
+| ibex source-build tag (`352eeeb`) as cell C's **default** (the "ibex tag we added") | `cells.env` default now **empty** → stock PATH pkg-config → Homebrew `ibex@2.7.4_13` = the pre-trial recipe; `run-cell.sh` only exposes shim/`IBEX_PC_DIR` when `CELL_C_IBEX_PREFIX` is explicitly set (knob kept, documented in both files) | gate 1: 445/445 executed, receipt `stock PATH pkg-config, 2.7.4`, failing set = frozen 22 + `timer_test` flake → **passed, kept** |
+| trial build prefixes `~/.local/opt/{ibex-352eeeb-gcc, -llvm, -llvm2, gmp-gcc16}` | untracked disk only; **zero** default-path references remain (checker: repo grep, opt-in shims exempt). Rebuild recipes kept below | gate 2 (bundled): full five-cell run |
+| — (kept deliberately, both buckets already classified above) | `install-ibex.sh` portability/`IBEX_CSTDINT_FIX`, `test-driver.sh` validity checks, trial shim files + `Containerfile.trial-clang`/`run-trial-e.sh`/`probe-libm.py` (opt-in receipts `report.md` points at) | — |
+
+**Gate 2 result (the registered run): A 445/445; B 445/445; C 423/22
+byte-identical to the frozen set; D 444 (known `-Wdangling-reference`
+unbuild); E 444 (same + `timer_test` flake)** — every target inside the
+registered ±flake allowances ⇒ **no regressions; both strips kept, none
+reverted.** Also done in this round: dreal4's four pinned commits pushed
+(`e6d31b4..51c93b9`, origin/modernize-macos now in sync).
+
+Deleted-prefix rebuild recipes (for reproducing T-d/T-g claims):
+- `ibex-…-gcc`: `CC=gcc-16 CXX=g++-16 IBEX_CSTDINT_FIX=1 PREFIX=$HOME/.local/opt/ibex-352eeeb-gcc WAF_PY=/opt/homebrew/bin/python3.10 harness/install-ibex.sh`
+- `ibex-…-llvm2`: `brew install llvm`, then `CC=/opt/homebrew/opt/llvm/bin/clang CXX=/opt/homebrew/opt/llvm/bin/clang++ CXXFLAGS="-std=c++0x -nostdinc++ -isystem$(xcrun --show-sdk-path)/usr/include/c++/v1" PREFIX=$HOME/.local/opt/ibex-352eeeb-llvm2 WAF_PY=/opt/homebrew/bin/python3.10 harness/install-ibex.sh`
+- `gmp-gcc16`: gmp-6.3.0 with `CC="gcc-16 -std=gnu17" CXX=g++-16 ./configure --prefix=$HOME/.local/opt/gmp-gcc16 && make -j && make install` (feeds `g++-16-compat` shim's `-L`)

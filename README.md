@@ -36,7 +36,7 @@ Matrix (a "cell" = code × environment):
 |---|---|---|---|
 | A | base `f93bdcc` (original, pre-modernization) | ubuntu 22.04 reference container | **measured: 445/445 pass** |
 | B | `e6d31b4` (`modernize-macos`) | ubuntu 22.04 reference container | **measured: 445/445 pass** |
-| C | `51c93b9` (= modernized + macOS pin/docs commits; the submodule pin) | this Mac (macOS, Apple Silicon), Python **3.14 pinned** | **445/445 executed; 22-failure cluster + ULP below** (last measurement 422/23: cluster + the known `timer_test` flake; ibex `352eeeb` after round 5) |
+| C | `51c93b9` (= modernized + macOS pin/docs commits; the submodule pin) | this Mac (macOS, Apple Silicon), Python **3.14 pinned** | **445/445 executed, 423 pass / 22 fail** — the "unsat cluster" + 1 ULP; ibex = stock Homebrew `ibex@2.7.4_13` (base config since the round-6 strip; the `352eeeb` tag is an opt-in knob, frozen 22 either way) |
 | D | `e6d31b4` (same code as B) | **Ubuntu 24.04** container (gcc 13, Python 3.12, gmp 6.3.0) | **measured: 444/445 pass**, 1 unbuildable (GCC≥13 `-Wdangling-reference` under `-Werror`), behavioural diff vs B = none |
 | E | `e6d31b4` (same code as B) | **Fedora 43** container (gcc 15, Python 3.14, nlopt 2.10) | **measured: 443/445** (same build failure + `timer_test` flake), behavioural diff vs B = none |
 
