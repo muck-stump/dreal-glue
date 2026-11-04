@@ -1,0 +1,7 @@
+//dreal/api:cav18_benchmark_with_local_opt
+//dreal/api:cav18_benchmark_without_local_opt
+//dreal/test/smt2:ea_beale
+//dreal/test/smt2:exist_forall_06
+//dreal/test/smt2:get_value_01
+//dreal/test/smt2:minimize_03
+//dreal/util:timer_test

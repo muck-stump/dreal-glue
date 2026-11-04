@@ -487,3 +487,52 @@ Infrastructure log for the record (5 attempts): -mmacos-version-min
 dialect → @params leak → gcc-doesn't-auto-link-libstdc++ → brew gmpxx
 libc++ ABI (fixed by gcc-built gmp-6.3.0 `-std=gnu17` trial prefix, exact
 `__ZlsRSoPK12__mpz_struct` symbol match) — all in `harness/shim-bin/gcc-16-compat`.
+
+**T-e attempt 1 (record):** 122/445 — clang-14 rejects one copt:
+`-Wno-deprecated-builtins` unknown → `-Werror,-Wunknown-warning-option`
+(137×). Why no Linux cell ever showed this: gcc *silently ignores*
+unknown `-Wno-*`, clang *errors* — the warning asymmetry itself. (The copt
+comes from dreal's own config; harmless on the clang-21 Mac.)
+**Attempt 2 (registered before running):** Containerfile.trial-clang adds a
+container-side `clang-14-compat` wrapper dropping that one option — same class of image-side
+accommodation as every other container cell; scoring branches unchanged
+(pre-registration: cluster absent, ≤2 fails).
+
+**T-e ATTEMPT 2: VALID FULL RUN (445/445 executed) — SCORED.** 7 fails:
+**6 ∈ the frozen mac-22** (`cav18_{with,without}_local_opt`, `ea_beale`,
+`exist_forall_06`, `get_value_01`, `minimize_03`) + `timer_test` (flake).
+The ≤2 "absent" branch is taken as MISSED: the cluster **partially
+reproduces on Linux under clang-14** (6/22), so LLVM-family codegen is now
+implicated for that slice — but not enough for the ≥10 branch either; the
+in-gap outcome is itself informative (matrix below).
+
+## Round 5 outcome matrix — BOTH axes matter
+
+Cluster reproduction count (out of the frozen 22), complete experiment grid:
+
+| toolchain → / runtime ↓ | gcc | clang (LLVM family) |
+|---|---|---|
+| **Linux/glibc** | **0** — cells A/B/D/E (gcc 11/13/15) | **6/22** — T-e (clang-14 = attempt 2, 445/445 executed) |
+| **Darwin/libm (this Mac)** | **22/22** — T-d (gcc-16, attempt 5, 444/445) | **22/22** — cell C baseline (apple clang 21) |
+
+Readings (all pre-registered branches scored above; none of my directional
+calls was right in full — T-d's persist hit, T-e's clean-commit missed into
+the gap):
+1. **Darwin side is the dominant axis**: *both* compilers give the full
+   cluster on the Mac; *neither* pristine-Linux cell ever has (gcc), and
+   clang only gets 6/22 there.
+2. **Compiler family still matters within Linux**: 0 → 6 purely by
+   swapping gcc for clang-14 at fixed glibc/runtime. The 6-slice
+   (`exist_forall_06`, `ea_beale`, cav18/bench-optimization, minimize_03,
+   get_value_01) = LLVM-family-sensitive targets.
+3. The **16 mac-only remainder** (incl pure-linear `github_issue_192` —
+   which T-e did *not* reproduce, upgrading it from "codegen?" to
+   "Darwin-runtime") has no Linux-clang twin ⇒ candidates: Apple-clang-21-
+   vs-14 version delta, Darwin runtime seam (T-c: ≤1 ulp libm, plausible
+   only where margins are knife-edge — and 192's margin is 5.8e6, so raw
+   value tables still don't explain it), fenv/SDK behavior of plain
+   interval arithmetic.
+4. Caveats honestly: T-d grafted libstdc++ + a gcc-built gmp trial prefix
+   (its 6 extras and swings come from that heterogeneous link chain); T-e's
+   shim dropped exactly one gcc-lnfluent line copt validated by the
+   445/445-executed outcome; clang-14 vs apple-clang-21 version skew.
