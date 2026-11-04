@@ -737,3 +737,22 @@ rebuild recipe on record); T-d's heterogeneity notes). Also upgrades the
 ibex-2.9 question to a pointed one: does 2.9 change rounding technique?
 Registration quality check: four sub-predictions, one saving nuance,
 three misses — the P4 inversion is the finding.
+
+**T-i — PRE-REGISTRATION (before rebuilding anything): T-d collision
+resolution.** Rebuild `ibex-352eeeb-gcc` exactly as the ledger recipe
+(gcc-16, IBEX_CSTDINT_FIX=1), compile the T-h value probe against it with
+g++-16 (`-O2 -ffp-contract=off` + the prefix's own `pkg-config --cflags`,
+receipts printed), score only the six arithmetic rows (decoders:
+`add` lb outward = `-0x1.7333333333334p+1`, nearest = `…333`; same
+signature rows: `sqr` lb, `tiny` lb, `div` ub).
+- **P1a (expected): gcc-mac libibex rounds OUTWARD** ⇒ gcc honors
+  -frounding-math here ⇒ T-d's 22/22 failure cannot be the rounding-loss
+  ⇒ either a *second* darwin mechanism exists or the T-d run carried its
+  own heterogeneity (its notes flag a "grafted chain") — next step then
+  re-examines T-d directly.
+- **P1b: gcc-mac rounds NEAREST** (matching apple/LLVM) ⇒ rounding-loss IS
+  compiler-independent on darwin ⇒ the seam is darwin×ibex-build, and
+  fenv-exonerated-yet-not-applied becomes the primary mechanism for all
+  22.
+Both branches keep the 6-test linux-clang slice for T-j(step 2).
+Artifacts: `runs/T-i-*.txt`.
