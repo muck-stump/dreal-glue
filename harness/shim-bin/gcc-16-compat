@@ -17,12 +17,24 @@ case "$0" in
 esac
 
 args=()
+raw=()
+# gcc/bazel pass link+compile flags in @response files; those would reach
+# real gcc unfiltered (the bug found in T-d attempt 2), so expand first.
 for a in "$@"; do
+  if [ "${a#@}" != "$a" ] && [ -r "${a#@}" ]; then
+    while IFS= read -r line; do
+      [ -n "$line" ] && raw+=("$line")
+    done < "${a#@}"
+  else
+    raw+=("$a")
+  fi
+done
+for a in "${raw[@]}"; do
   case "$a" in
     -mmacos-version-min=*) a="-mmacosx-version-min=${a#-mmacos-version-min=}" ;;
     -Wthread-safety|-Wself-assign|-fcolor-diagnostics|\
     -Winconsistent-missing-override|-Wreturn-stack-address|\
-    -no-canonical-prefixes) continue ;;
+    -no-canonical-prefixes|-fobjc-link-runtime) continue ;;
   esac
   args+=("$a")
 done

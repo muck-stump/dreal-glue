@@ -437,3 +437,13 @@ argv list. Semantics of the trial unchanged: same code, same -O2, same
 Darwin SDK/libm, gcc-16 codegen for both ibex and dreal.
 **Score branches identical to the original registration** (≥15 of 22 fail
 → darwin side; ≤3 → Apple-clang compilation path).
+
+**T-d attempt 2 (record):** compiles got through (dreal's own sources died
+only on the known gcc≥13 `-Wdangling-reference` false positive — the same
+one cells D/E record) but **all 65 links failed**: bazel's CppLink hands
+`@file.params`, the wrapper passes that single token to the shim, and
+real gcc expands the response file *internally* — dodging the filter
+(65× `-mmacos-version-min`, 65× `-fobjc-link-runtime`).
+**Shim v2 (registered before attempt 3):** expand `@`-files inside the
+shim first, then filter (adds `-fobjc-link-runtime` to the dropped
+apple-dialect set). Trial semantics unchanged; scoring branches unchanged.
