@@ -1,0 +1,18 @@
+1,2c1,2
+< add      [-0x1.7333333333333p+1, 0x1.ccccccccccccdp+2]
+< sub      [-0x1.f333333333333p+1, -0x1.3333333333333p-2]
+---
+> add      [-0x1.7333333333334p+1, 0x1.ccccccccccccdp+2]
+> sub      [-0x1.f333333333334p+1, -0x1.3333333333333p-2]
+4,6c4,6
+< div      [0x1.47ae147ae147bp-5, 0x1.1111111111111p-2]
+< sqr      [0x1.47ae147ae147cp-7, 0x1.47ae147ae147cp-5]
+< point    [0x1.47ae147ae147cp-6, 0x1.47ae147ae147cp-6]
+---
+> div      [0x1.47ae147ae147bp-5, 0x1.1111111111112p-2]
+> sqr      [0x1.47ae147ae147bp-7, 0x1.47ae147ae147cp-5]
+> point    [0x1.47ae147ae147bp-6, 0x1.47ae147ae147cp-6]
+16c16
+< tiny     [0x1.c28f5c28f5c2ap-4, 0x1.eb851eb851eb9p-3]
+---
+> tiny     [0x1.c28f5c28f5c29p-4, 0x1.eb851eb851eb9p-3]

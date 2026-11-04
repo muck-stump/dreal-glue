@@ -1,0 +1,11 @@
+=== T-h follow-on: directed-rounding probe (source runs both sides) ===
+--- MAC (Apple cc -O2 -frounding-math):
+initial fegetround=0 (TN=0 DN=8388608 UP=4194304)
+no-mode      0.1+(-3) = -0x1.7333333333333p+1
+fesetround(DOWN) rc=0 fegetround=8388608 -> -0x1.7333333333334p+1
+fesetround(UP)   rc=4194304 fegetround=4194304 -> -0x1.7333333333333p+1
+--- LINUX (gcc -O2 -frounding-math, cell image):
+initial fegetround=0 (TN=0 DN=8388608 UP=4194304)
+no-mode 0.1+(-3) = -0x1.7333333333333p+1
+fesetround(DOWN) rc=0 fegetround=8388608 -> -0x1.7333333333334p+1
+fesetround(UP) fegetround=4194304 -> -0x1.7333333333333p+1

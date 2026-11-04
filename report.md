@@ -693,3 +693,47 @@ Scoring: arithmetic divergence ⇒ fenv/contract-below-ibex class (candidate
 cleared end-to-end ⇒ divergence must live above ibex (dreal side) or in
 process FP state, and the linux-vs-mac ibex story is exonerated as a
 numerics difference. Artifacts: `runs/T-h-*.{txt,diff}`.
+
+**T-h SCORED (artifacts runs/T-h-*).** Same-commit ibex, macOS build vs
+Linux build:
+- **A1 headers: P hit-with-nuance** — 340/340 files present, **exactly one
+  byte difference**: `ibex/ibex/ibex_LPSolver.h`, one line: mac
+  `#include "coin/ClpSimplex.hpp"` vs linux `#include "ClpSimplex.hpp"`
+  (configure-time CLP-layout rewrite, platform package layout, not code).
+- **A2 ibex.pc: P half-miss** — only `prefix=` differs; **Cflags/Libs are
+  byte-identical incl. `-frounding-math`** — no platform flags exist
+  (stronger equality than P predicted).
+- **A3 symbols: P miss** — export surfaces genuinely differ beyond ABI
+  spelling: 2858 vs 3982 ibex symbols, 2400-element set delta (638
+  mac-only / 1762 linux-only, non-guard/template-heavy): compiler emit +
+  visibility/dead-strip policy differ. Artifacts sorted in
+  `runs/T-h-artifacts.txt`.
+- **A4 VALUE PROBE: P INVERTED — and inverted in the load-bearing
+  direction.** 12/18 rows differ, all at 1 ulp; **all of it in pure
+  arithmetic (add/sub/div/sqr/point/tiny); every transcendental (sqrt,
+  log, exp, sin, cos, atan, pow) byte-identical.** Direction decoded from
+  `0.1+(-3)`: linux lower bound = `-0x1.7333333333334p+1` = the FE_DOWNWARD
+  product; mac = `-0x1.7333333333333p+1` = round-to-nearest. Plus row-wise
+  (div ub, sqr lb, tiny lb) the same pattern: **linux endpoints round
+  outward (rigorous intervals); macOS-built ibex endpoints round nearest
+  (NON-rigorous intervals).**
+- **Follow-on directed-rounding probe (`runs/T-h-fenv-probe.c/.txt`):**
+  `fesetround(FE_DOWNWARD/UP)` **works identically on darwin-arm64 and
+  linux-arm64** (rc=0, fegetround echoes, arithmetic moves `…333→…334` and
+  back). The OS primitive is therefore NOT the failure — the
+  apple-clang-built ibex path fails to have directed rounding in effect
+  while running (codegen/honoring/inlining of the rounding-control layer),
+  i.e. divergence is in the compiler↔fenv seam, not fenv itself.
+
+Implications (hypothesis map): matches 3 of 4 grid quadrants directly —
+LLVM-family builds (apple-clang 21, upstream LLVM 23) lose directed
+rounding → all of macOS; clang-14 on Linux loses enough to sink the
+6-test slice; gcc keeps it → Linux clean. The recorded T-d result
+(**gcc-16 on macOS still 22/22**) *collides* with this and is now the
+standing contradiction to resolve (candidate explanations to check: WAF
+passing `-frounding-math` as *consumer* cflags in ibex.pc only vs into
+ibex's own compile line (the -gcc prefix was deleted per round-6;
+rebuild recipe on record); T-d's heterogeneity notes). Also upgrades the
+ibex-2.9 question to a pointed one: does 2.9 change rounding technique?
+Registration quality check: four sub-predictions, one saving nuance,
+three misses — the P4 inversion is the finding.

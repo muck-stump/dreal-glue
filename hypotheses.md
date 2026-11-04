@@ -204,3 +204,15 @@ Deleted-prefix rebuild recipes (for reproducing T-d/T-g claims):
 - `ibex-…-gcc`: `CC=gcc-16 CXX=g++-16 IBEX_CSTDINT_FIX=1 PREFIX=$HOME/.local/opt/ibex-352eeeb-gcc WAF_PY=/opt/homebrew/bin/python3.10 harness/install-ibex.sh`
 - `ibex-…-llvm2`: `brew install llvm`, then `CC=/opt/homebrew/opt/llvm/bin/clang CXX=/opt/homebrew/opt/llvm/bin/clang++ CXXFLAGS="-std=c++0x -nostdinc++ -isystem$(xcrun --show-sdk-path)/usr/include/c++/v1" PREFIX=$HOME/.local/opt/ibex-352eeeb-llvm2 WAF_PY=/opt/homebrew/bin/python3.10 harness/install-ibex.sh`
 - `gmp-gcc16`: gmp-6.3.0 with `CC="gcc-16 -std=gnu17" CXX=g++-16 ./configure --prefix=$HOME/.local/opt/gmp-gcc16 && make -j && make install` (feeds `g++-16-compat` shim's `-L`)
+
+### T-h — cross-OS equivalence audit (user: "is ibex really the same mac vs linux?")
+
+Answer: source char-for-char identical except one configure-rewritten
+CLP include line; ibex.pc flags identical; **behavior NOT identical:
+macOS-built ibex rounds endpoints to nearest, linux-built rounds outward
+(1-ulp, arithmetic-only, all transcendentals equal)** — first *observed*
+numerical divergence of the project; fesetround probed fine on both OSes
+so the failure sits in the compiler↔rounding-control seam. Contradiction
+logged: T-d (gcc-16 macOS, 22/22 fail) should then round outward — next
+round reconciles (ibex-own cflags line + gcc-mac rounding probe + clang-14
+in the T-e image). Full text: report.md T-h; artifacts: runs/T-h-*.
