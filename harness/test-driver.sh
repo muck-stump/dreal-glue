@@ -57,6 +57,9 @@ awk '$1 ~ /^\/\// && $2=="FLAKY" {print $1}' \
   else
     echo 'no loading errors'
   fi
+  if grep -qE '^ERROR: Build did NOT complete' "$WORK/bazel-test.log"; then
+    echo 'BUILD DID NOT COMPLETE — failed-to-build targets never got a status row'
+  fi
 } > "$WORK/completeness.txt"
 
 echo "$rc" > "$WORK/exit-code.txt"

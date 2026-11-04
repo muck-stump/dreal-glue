@@ -1,4 +1,4 @@
-# cell D environment manifest (collected when this cell was letter E; renamed at the letter standardization)
+# cell D environment manifest
 # image: dreal-ref:24.04 (3e25babda5a7dcb614e9aaeee6bdac3dcf4f8a6758b2b48ff72fe5188bf3adfd)
 PRETTY_NAME="Ubuntu 24.04.5 LTS"
 NAME="Ubuntu"

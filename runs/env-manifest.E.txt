@@ -1,4 +1,4 @@
-# cell E environment manifest (collected when this cell was letter F; renamed at the letter standardization)
+# cell E environment manifest
 # image: dreal-ref:fedora-43 (1066b7d27b9ee2d23cbb554b696aab2c50f24ae0b9779e841dc37b51f9d77d2a)
 NAME="Fedora Linux"
 VERSION="43 (Container Image)"

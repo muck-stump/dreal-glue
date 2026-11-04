@@ -280,3 +280,21 @@ D (Ubuntu 24.04), E (Fedora 43). Mappings from earlier entries: C2 → C
 (current C overwrites itself in git; the ibex-swap run will too), old E → D,
 old F → E; the pre-harness "base on Mac doesn't configure/build" probe was
 never a cell. See the renaming commit for every earlier reading.
+
+## Incident: letter rename vs volume names (caught by the first all-five run)
+
+Container state (source/bazel volumes, container names) is keyed by cell
+*letter* (`dreal-cell-<CELL>-*`). When letters were standardized (C2→C,
+old E→D, old F→E), the volumes were not renamed with them: the new cell E
+(Fedora) picked up `dreal-cell-E-bazel`, which round 2 seeded with the old
+E = **Ubuntu 24.04** bazel cache. Result: cross-distro cache, `absolute
+path inclusion(s) found` build collapse, `Executed 122/445, 323 fail to
+build` — caught by the completeness line and (after fixing summary.sh) by
+the BROKEN RUN display. Remediation: `podman volume rm` the letter-orphaned
+and letter-colliding volumes, re-run cell E from empty cache.
+Two parser lessons encoded in the harness: (1) failed.txt can under-list
+failures when builds abort before per-target rows — completeness.txt's own
+"Bazel count vs listed count" comparison is authoritative; (2) test-driver
+now flags `ERROR: Build did NOT complete` inside completeness.txt.
+Rule for the future: **letters never change again; volumes and letters are
+one identity.**
