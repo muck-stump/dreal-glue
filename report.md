@@ -568,3 +568,20 @@ Scoring branches:
   tion (faction co-causes or T-d's chain artifact), follow-up: shrink A/B.
 - **4–14 (gap):** both mechanisms coexist; report the measured split and
   re-rank (LLVM-version-on-Mac vs Darwin-state probes).
+
+**T-g attempt 1 (record):** invalid run — 122/445, 323 fail to build;
+completeness flag caught it. Cause: brew llvm bundles its own libc++23
+*headers* (`Cellar/llvm/23.1.4/include/c++/v1`), which at `-std=c++17`
+expose a degraded `std::result_of` ("no type named 'type'") and
+`std::fpos` availability vs Apple's SDK set → ThreadPool/abseil cascade.
+Probe matrix: brew-llvm+brew-libcxx23 = FAIL, brew-llvm+Apple-SDK
+libc++ = OK, linked dylib = system `libc++.1.dylib` regardless (brew llvm
+ships no libc++ dylib).
+
+**T-g attempt 2 (registered before running):** same trial question,
+narrowed honestly: compile with LLVM clang but `-nostdinc++` + Apple SDK
+`usr/include/c++/v1` headers (passed both as ibex-build `CXXFLAGS` and
+`CELL_BAZEL_EXTRA_ARGS --copt`s; receipt echoes both). Delta vs C baseline
+is now precisely LLVM front-end/builtins/codegen with the C++ standard
+library (headers + system dylib) identical to baseline. Scoring branches:
+unchanged from the 4699a23 registration.
