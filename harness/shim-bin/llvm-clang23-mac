@@ -1,21 +1,56 @@
 #!/usr/bin/env bash
 #
 # T-g trial shim (hypotheses.md round 5): LLVM-project clang 23 (brew llvm)
-# on macOS, for cell-C trials only. Strips exactly what bazel rejects:
-# the driver-injected "-fdepfile-entry=<SDK>/SDKSettings.json" bookkeeping
-# argument. Nothing else: same ISA flags, same headers (attempt 2 pins
-# Apple SDK libc++ via CELL_BAZEL_EXTRA_ARGS), same system libc++ dylib.
-# Dispatch on argv[0] so CC and CXX both work (cell C passes this path as
-# CELL_CC; run-cell.sh exports it into bazel's cc_configure env).
+# on macOS, cell-C trials only. Two accommodations, both bookkeeping-level,
+# neither touching code generation, ISA flags, headers, or stdlib:
+#
+# 1) strip a user-passed `*-fdepfile-entry=*SDKSettings.json` (defensive;
+#    the driver injects its own copy — see 2 — argv filtering alone can't
+#    reach it; registered attempt 3 proved this before the amendment).
+# 2) clang23's driver records `<SDK>/SDKSettings.json` as a depfile entry
+#    in every TU (apple clang 21 emits none). Bazel's "absolute path
+#    inclusion(s)" validator only accepts paths under the toolchain's
+#    *builtin* include dirs, which it learns from the `clang -E -v`
+#    probe, whose answer lists SDK `usr/include` but not the SDK root
+#    one level above — where SDKSettings.json sits. On probe-shaped
+#    invocations (-E and -v), append that root to the search list so the
+#    validator learns the truth: SDKSettings.json is a system file.
+# Normal compile/link argv is passed through byte-for-byte.
 case "${0##*/}" in
   *++*) real=/opt/homebrew/opt/llvm/bin/clang++ ;;
   *)    real=/opt/homebrew/opt/llvm/bin/clang ;;
 esac
 args=()
+is_probe=0
+has_v=0
 for a in "$@"; do
   case "$a" in
     -fdepfile-entry=*SDKSettings.json) continue ;;
+    -E) is_probe=1 ;;
+    -v) has_v=1 ;;
   esac
   args+=("$a")
 done
+SDKROOT=/Library/Developer/CommandLineTools/SDKs/MacOSX27.sdk
+if [ "$is_probe" = 1 ] && [ "$has_v" = 1 ]; then
+  out=$("$real" "${args[@]}" 2>&1; exit $?)
+  rc=$?
+  printf '%s\n' "$out" | awk -v r="$SDKROOT" '
+    { print }
+    /^End of search list/ { next }
+    pending && /^$/ { }
+    { if (index($0, "#include <...> search starts here:") == 1) inlist=1 }
+    function noop(){}
+  ' >/dev/null
+  # simpler and structure-preserving: inject before the closing marker
+  printf '%s\n' "$out" | awk -v r="$SDKROOT" '
+    { lines[NR] = $0 }
+    END {
+      for (i = 1; i <= NR; i++) {
+        if (lines[i] ~ /^End of search list\./) { print " " r }
+        print lines[i]
+      }
+    }'
+  exit $rc
+fi
 exec "$real" "${args[@]}"

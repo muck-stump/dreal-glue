@@ -600,3 +600,16 @@ llvm-clang23-mac[++]` strips exactly that one arg (no other change); trial
 delta unchanged = LLVM front end/builtin headers/codegen vs apple-clang-21,
 stdlib headers pinned to Apple SDK, system dylib. Scoring branches:
 unchanged (4699a23).
+
+**T-g attempt 3 registration AMENDED (pre-run proof; no data observed):**
+the `-fdepfile-entry` arg never appears on argv — the *driver constructs*
+it when it parses SDKSettings.json, so argv filtering can't reach it
+(verified: `-###` through the filter still shows it, count 1). The shim
+instantiated on the other lever: on probe-shaped invocations (`-E` + `-v`,
+which is how bazel's configure learns `cxx_builtin_include_directories`),
+append the SDK root — the parent dir of SDKSettings.json, and a boundary
+already containing every listed entry — before "End of search list." so
+the validator accepts the file that clang itself insists on declaring.
+Run argvs remain byte-identical otherwise. Scoring branches: unchanged
+(4699a23). Brew's Cellar c++ dir is absent from that list too by design
+(attempt-2 header pinning means nothing reaches it).
