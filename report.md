@@ -778,3 +778,18 @@ produces **byte-identical nearest values to the apple-clang build**
    (step 3), and mac headers are byte-identical to linux's (T-h A1),
    so whatever diverges is a *preprocessor define*, not text.
 Artifacts: `runs/T-i-gcc-pc.txt`, `runs/T-i-rounding.txt`.
+
+**T-j — PRE-REGISTRATION (before building):** build `ibex-352eeeb` with
+**clang-14 inside `dreal-trial-clang:22.04`** (the T-e image: jammy,
+glibc, the exact compiler behind the 6-test linux slice) to the same
+T-h value-probe receipts (`-O2 -ffp-contract=off` + prefix pkg-config
+cflags incl `-frounding-math`, `LD_LIBRARY_PATH` set).
+- **P2a (expected): rounds NEAREST** (like both mac compilers) ⇒ the
+  T-e six share the rounding-loss class → a single mechanism story
+  covers the whole grid (darwin-driver & compiler-axis unified: LLVM-
+  family loses the idiom-effect everywhere, gcc keeps it, except gcc
+  *on darwin* loses anyway ⇒ refine: loss = LLVM-family OR darwin).
+- **P2b: rounds OUTWARD** (like linux gcc) ⇒ rounding does NOT explain
+  the T-e six ⇒ the 6-slice keeps its own second-mechanism status
+  (contraction/other codegen), fitting its smaller membership.
+Artifacts: `runs/T-j-*.txt`.
