@@ -650,3 +650,20 @@ Honest cost note for the record: 4 attempts, 3 infrastructure
 accommodations (libc++23 headers → driver depfile-entry → verifier stderr
 parse), each registered before its run; no test outcome was seen before
 its registration.
+
+## Round-6 strip (user-directed: falsified knobs out of the default path)
+
+**Gate 1 — cell C on stripped base config (registered before running).**
+Strip 1/2: `CELL_C_IBEX_PREFIX` default now empty; run-cell.sh falls back
+to stock PATH pkg-config → Homebrew `ibex@2.7.4_13` (the pre-trial
+recipe); shim off the path unless the knob is set (opt-in documented in
+cells.env). Gate: failing set == the frozen 22, `timer_test` ±1. Result:
+445/445 executed, receipt = `stock PATH pkg-config`, modversion 2.7.4,
+-brew libs; diff vs frozen = **exactly one added line, `timer_test`**
+(the registered flake) → **PASSED, strip kept.**
+
+**Gate 2 — registered, full five-cell run, after strip 2 (trial
+prefixes deleted).** Expected: A 445/445; B 444 (+`timer_test` ±1);
+D/E 444 (known `-Wdangling-reference` unbuild + `timer_test` ±1); C = the
+frozen 22 (+`timer_test` ±1) on the base config of gate 1. Any target
+outside those sets ⇒ the offending strip gets reverted, not argued with.
