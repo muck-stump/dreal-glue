@@ -585,3 +585,18 @@ narrowed honestly: compile with LLVM clang but `-nostdinc++` + Apple SDK
 is now precisely LLVM front-end/builtins/codegen with the C++ standard
 library (headers + system dylib) identical to baseline. Scoring branches:
 unchanged from the 4699a23 registration.
+
+**T-g attempt 2 (record):** again invalid (122/445; completeness flag) —
+collapsing mechanism *identified, distinct from attempt 1*: every clang-23
+cc1 invocation got `-fdepfile-entry=<SDK>/SDKSettings.json` (proved via
+`-###`; apple clang 21 emits none: count 0). That absolute path lands in
+the depfile it generates for all compile actions, and
+`local_velociraptor`-style bazel validation ("absolute path
+inclusion(s) found") aborts 265 rules. Bookkeeping only — no diagnostic
+about code at all.
+
+**T-g attempt 3 (registered before running):** `harness/shim-bin/
+llvm-clang23-mac[++]` strips exactly that one arg (no other change); trial
+delta unchanged = LLVM front end/builtin headers/codegen vs apple-clang-21,
+stdlib headers pinned to Apple SDK, system dylib. Scoring branches:
+unchanged (4699a23).

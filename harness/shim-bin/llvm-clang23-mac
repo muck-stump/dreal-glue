@@ -1,0 +1,21 @@
+#!/usr/bin/env bash
+#
+# T-g trial shim (hypotheses.md round 5): LLVM-project clang 23 (brew llvm)
+# on macOS, for cell-C trials only. Strips exactly what bazel rejects:
+# the driver-injected "-fdepfile-entry=<SDK>/SDKSettings.json" bookkeeping
+# argument. Nothing else: same ISA flags, same headers (attempt 2 pins
+# Apple SDK libc++ via CELL_BAZEL_EXTRA_ARGS), same system libc++ dylib.
+# Dispatch on argv[0] so CC and CXX both work (cell C passes this path as
+# CELL_CC; run-cell.sh exports it into bazel's cc_configure env).
+case "${0##*/}" in
+  *++*) real=/opt/homebrew/opt/llvm/bin/clang++ ;;
+  *)    real=/opt/homebrew/opt/llvm/bin/clang ;;
+esac
+args=()
+for a in "$@"; do
+  case "$a" in
+    -fdepfile-entry=*SDKSettings.json) continue ;;
+  esac
+  args+=("$a")
+done
+exec "$real" "${args[@]}"
