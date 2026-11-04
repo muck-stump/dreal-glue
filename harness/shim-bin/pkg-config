@@ -1,0 +1,26 @@
+#!/usr/bin/env bash
+#
+# pkg-config shim — the ibex swap's lever, for host cell C only.
+#
+# Why: bazel's pkg_config_repository() (drake's, vendored in dreal4) runs
+# pkg-config with PKG_CONFIG_PATH set to the *committed* list in
+# dreal4/dreal/workspace.bzl and explicitly ignores the ambient
+# environment (pkg_config.bzl: "we ignore the environment variable
+# PKG_CONFIG_PATH set by the user"). No passwordless sudo means no shadow
+# prefix inside that list either. The pkg-config *binary* on PATH, however,
+# is tracked input (`environ = ["PATH"]`) — so that is the lever:
+# run-cell.sh prepends this dir to PATH for host cell C and restarts the
+# bazel server, and this wrapper prepends the harness-built ibex's pkgconfig
+# dir before handing over to real pkg-config.
+#
+# Scope: strictly cell C. Container cells run unshimmed; Homebrew's ibex is
+# untouched and unmodified; dreal4's checkout and workspace list are
+# untouched. IBEX_PC_DIR is REQUIRED — a missing prefix must fail loudly
+# (pkg-config "not found" → bazel build error) rather than silently fall
+# back to the brew snapshot we are testing against.
+set -euo pipefail
+
+: "${IBEX_PC_DIR:?IBEX_PC_DIR not set — cell C must run via harness/run-cell.sh, which sets it from CELL_C_IBEX_PREFIX}"
+
+export PKG_CONFIG_PATH="${IBEX_PC_DIR}${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}"
+exec /opt/homebrew/bin/pkg-config "$@"

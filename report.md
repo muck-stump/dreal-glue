@@ -282,3 +282,39 @@ comm -3 runs/failed.A.txt runs/failed.B.txt           # → (empty)
 - Optional: tier-0 smoke against the prebuilt `dreal/dreal4` image.
 - Optional follow-up round: the `gmp_repository.bzl` portability fix (would
   be a 14th commit → justifies a fresh A'/B' pair afterwards).
+
+## Round 4 — the ibex swap (prediction pre-registered BEFORE the run)
+
+**The one variable:** cell C (macOS) previously linked Homebrew's
+`ibex@2.7.4 = 2.7.4_13`, tag-pinned to commit **`26eeeaa` (2021)**, where
+cells A/B/D/E all source-build **`dreal-deps/ibex-lib@352eeeb`**. Cell C's
+recipe now source-builds `352eeeb` too (prefix `~/.local/opt/ibex-352eeeb`,
+resolved through `harness/shim-bin/pkg-config`; Homebrew's ibex untouched,
+dreal4 checkout untouched, same commit `51c93b9`, same Python 3.14, same
+driver). Everything else about C is byte-identical to the 423/445 run.
+
+**Primary prediction (scoreable): ≥ 19 of the 22 failing targets flip to
+pass** once mac runs the Linux cells' ibex commit. Predictions by class
+(step-1 classification, harness/NOTES.md + conversation of record):
+
+- **C1 (14, exactly-sat, `unsat` unlicensed): flip** — `exist_forall_{04,
+  06, 07, 08, 10}`, `ea_beale`, `github_issue_192`, `minimize_03`,
+  `//dreal/api:api_test`, `//dreal/test/python:{api_test,github_issue_154}`,
+  `unconstrained_opt_{beale,eggholder,mccormick,poly1}`.
+- **Mixed C1/C2 suite targets (3): flip** — `//dreal/api:cav18_*`.
+- **C3 undecidable-by-eye (2): expected flip** — `ea_01`, `github_issue_201`.
+- **C2 both-legal pair (2): may legitimately stay `unsat`** —
+  `constrained_opt_rosenbrock_{cubic,disk}` (strict-open feasible set,
+  unattained infimum: both answers legal under delta-semantics; if they do
+  not flip, that is evidence for the both-legal reading, not a miss).
+- **C4 value-drift (1): coin-flip, leaning stay** — `get_value_01`
+  (one-ULP model diff; may be Apple-libm FP, not ibex).
+- `//dreal/util:timer_test` is the pre-registered timing flake, excluded
+  from scoring either way.
+
+**Outcome that would falsify the ibex hypothesis:** cluster = 0 flips
+(cluster pinned to toolchain: Apple clang codegen / `-ffp-contract` / libm
+→ next step becomes the flag/libm bisect). Partial flip → two mechanisms;
+split the survivors against the C1/C2/C3/C4 classes above.
+
+Score of this round recorded below after the run.

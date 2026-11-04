@@ -16,6 +16,13 @@
 # different snapshot of the same 2.7.4 line; a B-vs-C attribution detail,
 # recorded in harness/NOTES.md.)
 #
+# Reusable wherever PREFIX/IBEX_CSTDINT_FIX/WAF_PY point it — including
+# building cell C's ibex from THIS commit on macOS, where the prefix is
+# passed in (see CELL_C_IBEX_PREFIX in cells.env) and resolved not by the
+# committed pkg_config_paths list but by harness/shim-bin/pkg-config:
+#   PREFIX="${CELL_C_IBEX_PREFIX:-}" … is invoked as
+#   PREFIX=~/.local/opt/ibex-352eeeb WAF_PY=/opt/homebrew/bin/python3.10 harness/install-ibex.sh
+#
 set -euo pipefail
 
 # Interpreter for ibex's bundled waf (shebang is `python3`): waf 2.0.12 does
@@ -29,13 +36,22 @@ WAF_PY=${WAF_PY:-python3}
 IBEX_COMMIT=352eeeb2345fb2b7a7ec248b44770d8cdc4a5d67
 # sha256 of https://codeload.github.com/dreal-deps/ibex-lib/tar.gz/$IBEX_COMMIT
 IBEX_SHA256=4e551e2db7074329d716752b03ee8fed9e685d757c9e26773f0a80d8b45c0763
-PREFIX=/opt/libibex/2.7.4
+PREFIX=${PREFIX:-/opt/libibex/2.7.4}
 
 workdir="$(mktemp -d)"
 cd "$workdir"
 
-wget -q -O ibex.tar.gz "https://codeload.github.com/dreal-deps/ibex-lib/tar.gz/${IBEX_COMMIT}"
-echo "${IBEX_SHA256}  ibex.tar.gz" | sha256sum -c
+# wget in the images; macOS ships curl instead — same URL, same bytes.
+if command -v wget >/dev/null; then
+  wget -q -O ibex.tar.gz "https://codeload.github.com/dreal-deps/ibex-lib/tar.gz/${IBEX_COMMIT}"
+else
+  curl -fsSL -o ibex.tar.gz "https://codeload.github.com/dreal-deps/ibex-lib/tar.gz/${IBEX_COMMIT}"
+fi
+# digest-and-compare: macOS's sha256sum doesn't do GNU-style `-c` on stdin
+actual_sha=$(shasum -a 256 ibex.tar.gz 2>/dev/null | cut -d' ' -f1 \
+             || sha256sum ibex.tar.gz | cut -d' ' -f1)
+[ "$actual_sha" = "$IBEX_SHA256" ] || {
+  echo "sha256 mismatch for ibex.tar.gz: $actual_sha != $IBEX_SHA256" >&2; exit 1; }
 tar xzf ibex.tar.gz --strip-components=1
 
 # Portability gate (opt-in, so the reference images keep building exactly
@@ -68,7 +84,9 @@ CXXFLAGS=-std=c++0x "$WAF_PY" ./waf configure \
 # flags from ibex.pc on arm64"). aarch64 g++ hard-errors on -msse3, and cell
 # C removed -ffloat-store too, keeping B and C consistent.
 PC="${PREFIX}/share/pkgconfig/ibex.pc"
-sed -i 's/ -msse3//g; s/ -ffloat-store//g' "${PC}"
+# portable in-place (BSD sed's -i wants a suffix arg; GNU's doesn't take one)
+sed -e 's/ -msse3//g; s/ -ffloat-store//g' "${PC}" > "${PC}.tmp"
+mv "${PC}.tmp" "${PC}"
 
 # Sanity: exactly the probe dreal/workspace.bzl will run (its Linux entry
 # "/opt/libibex/2.7.4/share/pkgconfig"), plus no x86 leftovers.

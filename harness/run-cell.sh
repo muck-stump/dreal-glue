@@ -37,6 +37,22 @@ if [ "$(cell_kind "$CELL")" = host ]; then
   HEAD_SHA=$(git -C "$ROOT/dreal4" rev-parse HEAD)
   [ "$HEAD_SHA" = "$COMMIT" ] || {
     echo "cell $CELL: dreal4 HEAD $HEAD_SHA != pinned commit $COMMIT" >&2; exit 1; }
+
+  # Cell C recipe knob — the ibex swap. dreal's @ibex repository rule takes
+  # PKG_CONFIG_PATH ONLY from dreal4/dreal/workspace.bzl's committed list,
+  # which ends at Homebrew's ibex (2.7.4_13, 2021); it tracks PATH (the
+  # pkg-config "binary" it resolves), so preppend our shim dir, point it at
+  # the harness source-build of the SAME ibex commit the Linux cells use
+  # (352eeeb), and restart the bazel server so PATH actually reaches the
+  # rule. Missing prefix = loud pkg-config failure, never silent brew fallback.
+  export IBEX_PC_DIR="$CELL_C_IBEX_PREFIX/share/pkgconfig"
+  [ -f "$IBEX_PC_DIR/ibex.pc" ] || {
+    echo "cell $CELL: no ibex.pc at $IBEX_PC_DIR" >&2
+    echo "  build it:  PREFIX=\"$CELL_C_IBEX_PREFIX\" WAF_PY=/opt/homebrew/bin/python3.10 harness/install-ibex.sh" >&2
+    exit 1; }
+  export PATH="$ROOT/harness/shim-bin:$PATH"
+  (cd "$ROOT/dreal4" && bazel shutdown >/dev/null 2>&1) || true
+
   STAGE="$ROOT/runs/.stage-$CELL"
   rm -rf "$STAGE"; mkdir -p "$STAGE"
   echo "cell $CELL (host): testing $HEAD_SHA at $ROOT/dreal4"
