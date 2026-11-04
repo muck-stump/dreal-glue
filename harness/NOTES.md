@@ -227,6 +227,20 @@ general move any test result? One variable per cell.
 - Net: one build-level compiler-warning delta + one timing flake, zero
   behavioural drift → cell C's 142 remain fully mac-attributed.
 
+## Round 3 — host cell C2 (macOS, pinned Python 3.14)
+
+Not a harness-run (host cell, run bare metal like cell C), pointer only:
+dreal4 pins `py_test` to Homebrew `python3.14` (`.bazelrc` build:macos
+`--repo_env=PYTHON_BIN_PATH`, above the try-import so user.bazelrc
+wins; Linux keeps PATH's python3 ⇒ reference cells unaffected by
+construction). Result 423/445 with exactly the 119 cpplint labels flipping
+and nothing else moving — full method, pre-registered predictions and
+score: report.md, "Round 3". Artifacts: runs/{failed,completeness,
+env-manifest,exit-code,bazel-test}.C2.*. Verified switch before running:
+`external/local_config_python/BUILD` → `interpreter_path
+= /opt/homebrew/bin/python3.14` (note: `bazel query` does NOT apply
+build: sections — a query-based check falsely shows the old python).
+
 ## Status
 
 - [x] podman installed + machine created (6.1.4, applehv, arm64, 8/12288/60,

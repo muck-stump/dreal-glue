@@ -36,7 +36,8 @@ Matrix (a "cell" = code × environment):
 |---|---|---|---|
 | A | base `f93bdcc` (original, pre-modernization) | reference container (Ubuntu) | **measured: 445/445 pass** |
 | B | branch `e6d31b4` (`modernize-macos` tip, current submodule pin) | reference container | **measured: 445/445 pass** |
-| C | branch `e6d31b4` | this Mac (macOS, Apple Silicon) | **measured: 445 tests, 303 pass / 142 fail** |
+| C | branch `e6d31b4` | this Mac (macOS, Apple Silicon), Python **3.15.2** | **measured: 445 tests, 303 pass / 142 fail** |
+| C2 | tip `f37a1c1` (3 pin/note commits past `e6d31b4`) | this Mac, Python **3.14 pinned** (`brew install python@3.14`) | **measured: 445/445 executed, 423 pass / 22 fail — all 119 cpplint flip to pass; the 22 = C's non-Python failures** |
 | D | base `f93bdcc` | this Mac | doesn't even configure/build — that is why the modernization exists; out of scope (build-level, not test-level) |
 | E | branch `e6d31b4` (same code as B) | **modern Ubuntu**: Ubuntu 24.04 container (gcc 13, Python 3.12, gmp 6.3.0) | **measured: 444/445 pass, 1 fails to build (GCC≥13 warning), behavioural diff vs B = none** |
 | F | branch `e6d31b4` (same code as B) | **modern Fedora**: Fedora 43 container (gcc 15, Python 3.14, nlopt 2.10) | **measured: 443/445 (same build failure + `timer_test` flake), behavioural diff vs B = none** |
@@ -65,6 +66,11 @@ Three comparisons, three questions:
   prediction scorecard: [`report.md`](report.md); the environment-side
   container accommodations and the pre-registered predictions:
   [`harness/NOTES.md`](harness/NOTES.md).
+- **C vs C2** (same host, one interpreter, two tooling commits): which of
+  cell C's failures were Python? Exactly the 119 cpplints — they pass on
+  re-run while the 21 cluster + ULP stay (`failed.C2.txt` = 22, zero
+  cpplint). dreal4 now treats Python 3.14 as an macOS prerequisite and
+  pins it in `.bazelrc`; see report.md, round 3.
 
 ### Ground rules (from the maintainer)
 
@@ -248,6 +254,8 @@ Not done, in order:
 2. Optional: tier-0 smoke run against the prebuilt `dreal/dreal4` image.
 3. Optional follow-up round: the `gmp_repository.bzl` arch-probe fix **and
    the round-2 `-Wdangling-reference` build fix** as normal dreal4
-   commits → re-pin → fresh A′/B′ pair (until then, the image's gmp.h
-   symlink carries both cells equally, and GCC ≥ 13 keeps one test
-   unbuildable).
+   commits → re-pin → fresh A′/B′ pair (the Python 3.14 pin trio is
+   already committed and travels with that round; it is macOS-gated in
+   `.bazelrc`, so reference runs are unaffected by construction —
+   until then, the image's gmp.h symlink carries both cells equally, and
+   GCC ≥ 13 keeps one test unbuildable).

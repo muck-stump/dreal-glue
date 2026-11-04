@@ -159,8 +159,8 @@ comm -3 runs/failed.B.txt runs/failed.F.txt   # → that line + timer_test
 
 ## Round 3 — cell C2: macOS re-measured under a pinned Python 3.14
 
-Status: **predictions below pre-registered before the run** (house rule:
-written before results existed). Not yet run when this section landed.
+Status: **measured — every prediction held** (tip `f37a1c1` = the three
+pin/note commits on top of `e6d31b4`).
 
 ### Why / what changed vs cell C
 
@@ -195,6 +195,22 @@ repo rule only invalidates on an actual env change.)
 | 3 | everything else stays as cell C: the 21 `unsat`-cluster + `get_value_01` still fail (Python cannot touch solver answers); `timer_test` is a coin flip (C failed it, E passed, F failed) |
 | 4 | ⇒ expected **421–422 pass / 445**, i.e. `failed.C2` = C's non-cpplint failures, `\|failed.C2\|` = 22–23 |
 | 5 | **anything else moving = real signal** → stop and attribute before reporting |
+
+### Scored (all five hold)
+
+| prediction | result |
+|---|---|
+| 1 | ✅ `Executed 445 out of 445 tests: 423 tests pass and 22 fail locally`, `no loading errors` (runs/completeness.C2.txt, bazel rc 3) |
+| 2 | ✅ **zero `*_cpplint` in `runs/failed.C2.txt`; 119/119 pass** — the causal flip: changing only the interpreter removed exactly that class |
+| 3 | ✅ the failing 22 are exactly cell C's non-Python set: the 21 `unsat` cluster (api ×2, cav18 ×2, constrained_opt ×2, unconstrained_opt ×4, python api/gh154 ×2, ea ×2, exist_forall ×5, gh192/201 ×2, minimize_03) + `get_value_01`. `timer_test` **passed** this round — coin landed pass (C: fail, E: pass, F: fail, C2: pass ⇒ flaky, as scored in round 2) |
+| 4 | ✅ **423/445** (band was 421–445 / fail-count 22–23) |
+| 5 | ✅ the flip set is precisely the cpplint class — nothing else entered or left `failed.*` |
+
+Net: cell C's 142 = **119 Python-version** (now fixed by prerequisite+pin,
+not by touching a test) **+ 21 wrong-answer cluster + 1 ULP** (the mac's
+real, Python-independent residual) + 1/0 flake. The direct C↔C2 contrast
+upgrades the cpplint attribution from "deduced via Fedora" to
+cross-experiment causal, on one machine, one variable.
 
 Method otherwise identical to cell C: bare metal, same host, same
 clang/ibex, `-k --cache_test_results=no //...`, artifacts

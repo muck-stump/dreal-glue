@@ -1,0 +1,18 @@
+# cell C2 environment manifest (host cell: this Mac, bare metal)
+# commit under test: f37a1c1b14e7cbcda043c9605228ab452f0de53f
+ProductName:		macOS
+ProductVersion:		27.0.1
+BuildVersion:		26A434
+arm64
+clang: Apple clang version 21.0.0 (clang-2100.4.1.1)
+python under test (pinned): Python 3.14.10
+host default python3 (NOT used): Python 3.15.2
+bazel: bazel 7.0.0  (bazelisk honoring dreal4/.bazelversion; the bare `bazel --version` at glue root has no .bazelversion and reports bazelisk's default - not what ran)
+ibex: 2.7.4
+
+--- dreal4 git ---
+f37a1c1 readme: Record Python 3.14 as the tested interpreter on macOS
+1ea8627 python_configure: Name the Python prerequisite when the interpreter is missing
+6a0c0cc bazel: Pin macOS py_tests to Python 3.14
+e6d31b4 readme: Record the macOS test results and known failures
+7ec6fad readme: Document building on macOS from this repository
