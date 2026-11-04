@@ -1,0 +1,79 @@
+# Cell F — recent Fedora: cell B's code (e6d31b4) on a newer OS (Fedora 43).
+#
+# Upstream ships no Fedora prereq script at all (setup/ = mac + ubuntu only),
+# so the package list below is setup/ubuntu/22.04/install_prereqs.sh mapped
+# name by name — 1:1 equivalents, every mapping verified in this base image
+# (`dnf provides '*/clp.pc'` etc.) before the file was written:
+#
+#   upstream (Ubuntu 22.04)   Fedora 43               notes
+#   -------------------------  ----------------------  --------------------------
+#   bison                      bison
+#   coinor-libclp-dev          coin-or-Clp-devel       /usr/lib64/pkgconfig/clp.pc (1.17.10)
+#   g++                        gcc-c++                 GCC 15.3 — big delta vs cell B (gcc 11.4)
+#   libfl-dev                  flex                    FlexLexer.h is vendored in third_party anyway
+#   libgmp-dev                 gmp-devel               ships /usr/include/gmp.h: the gmp rule's Fedora
+#                                                       branch works as written → NO symlink hack here
+#   libnlopt-cxx-dev           NLopt-devel             capital N and L; 2.10.0 (cell B: 2.7.1)
+#   libpython3-dev             python3-devel           Python 3.14 — second big delta (cell B: 3.10.12)
+#   pkg-config                 pkgconf-pkg-config
+#   python3-minimal            (comes with python3-devel)
+#   zlib1g-dev                 zlib-devel
+#   libibex-dev                (no ibex package in Fedora at all)
+#                              → install-ibex.sh, same commit as A/B/E
+#   python3-distutils          (gone upstream since 3.12)
+#                              → cell B's code tolerates it (commit 6c4ea85)
+#
+# wget/make and the autoconf/automake/file/patch/git/which set are what the
+# reference image gets from upstream's script, plus exactly the utilities
+# upstream's own Dockerfile.amazonlinux adds for its non-Debian source build
+# (its yum list is upstream's own cross-distro reference). Probed to install
+# completion in fedora:43 before this file was written.
+FROM fedora:43
+
+RUN dnf -y install \
+      autoconf automake bison file flex gcc-c++ git gmp-devel make patch \
+      pkgconf-pkg-config python3-devel wget which zlib-devel \
+      coin-or-Clp-devel NLopt-devel \
+      python3.10 \
+    && dnf clean all
+
+# Why python3.10 (not Fedora's 3.14): ibex's vendored waf 2.0.12 does
+# `import imp`, which CPython removed in 3.12 — the image build died with
+# ModuleNotFoundError: No module named 'imp'. Fedora still packages 3.10, so
+# waf runs under the very interpreter version the reference image uses
+# (Ubuntu 22.04's python3), keeping the ibex build tool identical across
+# A/B/E/F. Only the build tool moves; ibex's output is compiled C++, and the
+# cell's own tests still run against Fedora's default Python 3.14 — which is
+# the OS variable this cell exists to measure. install-ibex.sh picks this up
+# via WAF_PY.
+ENV WAF_PY=python3.10
+# ibex 2.7.4 also needs the GCC>=13 <cstdint> fix (built it, gcc-15)
+ENV IBEX_CSTDINT_FIX=1
+
+# Fail the image build here — not 40 minutes into a cell — if any probe target
+# that bazel/ibex configure will look for is missing.
+RUN pkg-config --modversion clp nlopt gmp && python3 -V && g++ --version
+
+# ibex 2.7.4 — the SAME source-built commit as the reference image, into the
+# prefix dreal/workspace.bzl probes on Linux (/opt/libibex/2.7.4), so ibex is
+# held constant across A/B/E/F. clp comes from Fedora's coin-or-Clp via
+# pkg-config's builtin /usr/lib64/pkgconfig — verified above.
+COPY harness/install-ibex.sh /tmp/install-ibex.sh
+RUN bash /tmp/install-ibex.sh && rm -f /tmp/install-ibex.sh
+
+# Bazel 7.0.0, sha-pinned — on arm64 install-bazel.sh takes upstream's
+# self-contained binary, byte-identical to what cells A/B/E ran, so the
+# Bazel version never varies across cells.
+COPY harness/install-bazel.sh /tmp/install-bazel.sh
+RUN bash /tmp/install-bazel.sh && rm -f /tmp/install-bazel.sh
+
+# The test driver every container cell runs identically.
+COPY harness/in-container-test.sh /usr/local/bin/dreal-cell-test
+RUN chmod +x /usr/local/bin/dreal-cell-test
+
+# No gmp.h symlink here, unlike the Ubuntu images: Fedora installs gmp.h at
+# /usr/include/gmp.h natively, which is the layout tools/gmp_repository.bzl's
+# Linux branch already handles. Guard it anyway so the image fails loudly if
+# that ever stops being true — a silently failing probe is what dropped ~259
+# targets in round 1 (harness/NOTES.md).
+RUN test -e /usr/include/gmp.h && pkg-config --modversion gmp

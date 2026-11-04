@@ -1,0 +1,120 @@
+# Cell E — modern Ubuntu: cell B's code (e6d31b4) on a newer OS (24.04 LTS).
+# Derived from harness/Containerfile (the 22.04 reference image of cells A/B);
+# every difference from it is deliberate and listed right where it happens.
+#
+# Same two guarantees as the reference recipe:
+#   * the checkout under test is materialized into a volume at run time and
+#     never baked in — all deviations live here, in the harness;
+#   * upstream's apt package list stays the single source of truth (extracted
+#     verbatim below), so the delta vs the reference image is enumerable:
+#     exactly the two deletions called out underneath.
+# --- stage "jammy-py": the ibex BUILD tool's interpreter (NOT part of cell E's
+# measured environment — dreal never runs under it) ---------------------------
+# ibex's bundled waf 2.0.12 needs the `imp` module (removed in Python 3.12)
+# and `open(..., "rU")` (removed in 3.11); ibex's own wscript needs
+# `distutils.version.LooseVersion` (removed in 3.12). Noble packages no older
+# CPython — probed: no python3.10/3.11 archive; pypy3 breaks waf's subprocess
+# layer; an imp shim gets one wall further and hits the next immediately.
+# So cell E grafts jammy's CPython 3.10 — same base release as the reference
+# image, i.e. the very interpreter cells A/B built ibex with — and pins
+# WAF_PY to it (Fedora 43, by contrast, archives python3.10 natively: see
+# Containerfile.fedora-43). dreal's own tests still run on noble's Python
+# 3.12: that is the variable this cell measures.
+FROM ubuntu:22.04 AS jammy-py
+RUN apt-get update -qq \
+    && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends python3 python3-distutils \
+    && rm -rf /var/lib/apt/lists/*
+
+# --- stage "cell E": Ubuntu 24.04 -------------------------------------------
+FROM ubuntu:24.04
+
+# Upstream ships setup/ubuntu/{18.04,20.04,22.04} only — there is no noble
+# prereq script, so the 22.04 script's package list is extracted and two
+# entries dropped (both environment-side, both to be documented in
+# report.md):
+#
+#   libibex-dev        its only source is ppa:dreal/dreal, which publishes no
+#                      noble Release (and was amd64-only anyway). ibex comes
+#                      from install-ibex.sh instead — the SAME commit the
+#                      reference image builds, so ibex is held constant
+#                      across A/B/E/F. Dropping the PPA step also removes the
+#                      gpg-agent trap that needed a pre-install on 22.04:
+#                      no PPA key import happens here at all.
+#   python3-distutils  no such package on noble: 3.12 removed distutils, so
+#                      apt would fail on the name alone. Cell B's code
+#                      already tolerates a distutils-less Python (dreal4
+#                      commit 6c4ea85 "bazel: Tolerate Python without
+#                      distutils"), which is what that commit was for.
+#
+# The rest (bison, coinor-libclp-dev, g++, libfl-dev, libgmp-dev,
+# libnlopt-cxx-dev, libpython3-dev, pkg-config, python3-minimal,
+# zlib1g-dev) exists on noble — probed to completion in ubuntu:24.04 first.
+ENV DEBIAN_FRONTEND=noninteractive
+
+# The graft: interpreter binary + full stdlib (minimal + stdlib + distutils all
+# live in /usr/lib/python3.10). One explicit runtime dep to carry:
+# libexpat.so.1 (python3.10 links it; noble's base has no libexpat1 before
+# anything python-ish is installed — measured here, first graft build died
+# exactly on it). libz/libm/libc are in base. The import check below covers
+# dynamic resolution + everything ibex's wscript/waf reach for.
+RUN apt-get update -qq \
+    && apt-get install -y --no-install-recommends libexpat1 \
+    && rm -rf /var/lib/apt/lists/*
+COPY --from=jammy-py /usr/bin/python3.10    /usr/bin/python3.10
+COPY --from=jammy-py /usr/lib/python3.10    /usr/lib/python3.10
+RUN /usr/bin/python3.10 -V \
+    && /usr/bin/python3.10 -c 'import shutil, tarfile, re, json; from distutils.version import LooseVersion; print("jammy python3.10 graft: OK")'
+ENV WAF_PY=/usr/bin/python3.10
+# Same libstdc++ story as Fedora, already at GCC 13 (measured: noble's gcc-13
+# dies on the identical uint32_t-no-<cstdint> breakage gcc-15 does, and the
+# reference image's gcc-11 does not): container-side include fix, opt-in.
+ENV IBEX_CSTDINT_FIX=1
+
+COPY dreal4/setup/ubuntu/22.04/install_prereqs.sh /tmp/install_prereqs.sh
+RUN awk '/<<EOF/{f=1;next} f && /^EOF$/{exit} f{print}' /tmp/install_prereqs.sh \
+      | grep -v -e '^libibex-dev$' -e '^python3-distutils$' > /tmp/pkg.list \
+    && { echo "--- apt list (upstream 22.04 minus the 2 deletions) ---"; cat /tmp/pkg.list; echo "---"; } \
+    && apt-get update -qq \
+    && for i in 1 2 3; do \
+         apt-get install -y --no-install-recommends $(cat /tmp/pkg.list) && ok=1 && break; \
+         echo "apt prereqs attempt $i failed; retrying in 30s" >&2; sleep 30; \
+       done; \
+    test "${ok:-}" = 1 \
+    && rm -f /tmp/install_prereqs.sh /tmp/pkg.list
+
+# wget serves both install-*.sh scripts (upstream installs it only inside the
+# bazel section we do not run); make feeds ibex's bundled filib
+# configure+make path — same two lines as the reference image, kept
+# bit-identical on purpose.
+# ca-certificates is NOT optional here: unlike the reference image (which the
+# PPA tooling pulled it in transitively), this trimmed list installs wget with
+# --no-install-recommends, and wget fails rc=5 ("SSL certificate problem")
+# against codeload.github.com without the system CA bundle — first build died
+# exactly there.
+RUN apt-get install -y --no-install-recommends wget make ca-certificates
+
+# ibex 2.7.4 — the same source-built commit as the reference image, into the
+# prefix dreal/workspace.bzl probes on Linux (/opt/libibex/2.7.4).
+COPY harness/install-ibex.sh /tmp/install-ibex.sh
+RUN bash /tmp/install-ibex.sh && rm -f /tmp/install-ibex.sh
+
+# Bazel 7.0.0, sha-pinned (arm64: the official self-contained binary —
+# byte-identical to what cells A/B ran, so the Bazel version never varies).
+COPY harness/install-bazel.sh /tmp/install-bazel.sh
+RUN bash /tmp/install-bazel.sh && rm -f /tmp/install-bazel.sh
+
+# The test driver every container cell runs identically.
+COPY harness/in-container-test.sh /usr/local/bin/dreal-cell-test
+RUN chmod +x /usr/local/bin/dreal-cell-test
+
+# gmp.h: same multiarch gap as the reference image — tools/gmp_repository.bzl
+# hardcodes the x86 tuple or the Fedora layout, and Ubuntu/arm64 multiarch is
+# neither → the rule would fail() and silently drop ~259 targets in the loading
+# phase (the round-1 lesson in harness/NOTES.md). Same symlink fix, written
+# for any Ubuntu arch; container-side by design — the .bzl fix belongs to a
+# later round as a normal dreal4 commit.
+RUN GNUPATH=$(ls /usr/include/*-linux-gnu/gmp.h | head -1) \
+    && test -n "$GNUPATH" \
+    && { [ -e /usr/include/gmp.h ] || ln -sf "$GNUPATH" /usr/include/gmp.h; } \
+    && ls -l /usr/include/gmp.h \
+    && pkg-config --modversion gmp

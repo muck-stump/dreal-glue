@@ -14,9 +14,18 @@ set -euo pipefail
 
 BAZEL_VERSION=7.0.0
 
-case "$(dpkg --print-architecture)" in
-  amd64)
-    # Artifact + sha exactly as upstream's install_prereqs.sh pins them.
+# Arch via uname, not dpkg: Fedora images have no dpkg, and on arm64 (the
+# arch this workspace runs) the artifact is distro-independent anyway.
+ARCH=$(uname -m)
+
+case "$ARCH" in
+  x86_64)
+    # Artifact + sha exactly as upstream's install_prereqs.sh pins them —
+    # upstream ships no x86_64 rpm either, so this path needs Debian-family.
+    command -v dpkg >/dev/null || {
+      echo "install-bazel.sh: x86_64 needs dpkg (upstream publishes no rpm for ${BAZEL_VERSION}); use arm64" >&2
+      exit 1
+    }
     DEB="bazel_${BAZEL_VERSION}-linux-x86_64.deb"
     SHA="e1fd8ffa3cc09bf13b98a69b2b5041cea9d01029112b7e2dbbab5be6f0a3115c"
     wget -q "https://github.com/bazelbuild/bazel/releases/download/${BAZEL_VERSION}/${DEB}"
@@ -24,7 +33,7 @@ case "$(dpkg --print-architecture)" in
     dpkg --install ./"${DEB}" || apt-get -f install -y
     rm -f "${DEB}"
     ;;
-  arm64)
+  aarch64)
     BIN="bazel-${BAZEL_VERSION}-linux-arm64"
     # Official checksum asset published with the release:
     # releases/download/7.0.0/bazel-7.0.0-linux-arm64.sha256
@@ -35,7 +44,7 @@ case "$(dpkg --print-architecture)" in
     chmod +x /usr/local/bin/bazel
     ;;
   *)
-    echo "install-bazel.sh: unsupported architecture: $(dpkg --print-architecture)" >&2
+    echo "install-bazel.sh: unsupported architecture: $ARCH" >&2
     exit 1
     ;;
 esac

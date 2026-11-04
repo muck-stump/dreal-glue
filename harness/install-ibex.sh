@@ -18,6 +18,14 @@
 #
 set -euo pipefail
 
+# Interpreter for ibex's bundled waf (shebang is `python3`): waf 2.0.12 does
+# `import imp`, removed in CPython 3.12. Default = plain python3, which on
+# the Ubuntu images is 3.10 — i.e. exactly the previous behavior. The Fedora
+# image sets WAF_PY=python3.10 explicitly (its default python3 is 3.14), so
+# the *build tool* is the same interpreter version everywhere; the artifact is
+# compiled C++ either way.
+WAF_PY=${WAF_PY:-python3}
+
 IBEX_COMMIT=352eeeb2345fb2b7a7ec248b44770d8cdc4a5d67
 # sha256 of https://codeload.github.com/dreal-deps/ibex-lib/tar.gz/$IBEX_COMMIT
 IBEX_SHA256=4e551e2db7074329d716752b03ee8fed9e685d757c9e26773f0a80d8b45c0763
@@ -30,6 +38,19 @@ wget -q -O ibex.tar.gz "https://codeload.github.com/dreal-deps/ibex-lib/tar.gz/$
 echo "${IBEX_SHA256}  ibex.tar.gz" | sha256sum -c
 tar xzf ibex.tar.gz --strip-components=1
 
+# Portability gate (opt-in, so the reference images keep building exactly
+# what they always did): GCC >= 13'"'"'s libstdc++ stopped dragging
+# <cstdint> in transitively, and ibex 2.7.4 (2022) uses uint32_t without
+# including it — measured: gcc-15/Fedora 43 dies with 6 errors ("uint32_t
+# was not declared", plus cascade in ibex_CovSolverData.cpp). Adding the
+# include to the two spots gcc complains about is the minimal, upstream-
+# style fix; build-affecting only, never test-affecting. Enabled per image via
+# IBEX_CSTDINT_FIX=1.
+if [ "${IBEX_CSTDINT_FIX:-0}" = 1 ]; then
+  echo "IBEX_CSTDINT_FIX=1: adding <cstdint> includes (GCC >= 13 transitive-include breakage)"
+  sed -i '1i#include <cstdint>' src/data/ibex_Cov.h plugins/solver/src/ibex_CovSolverData.cpp
+fi
+
 # Configure/build exactly as Dockerfile.amazonlinux does (upstream's own
 # source-build reference). System clp from Ubuntu's coinor-libclp-dev is
 # found via pkg-config (verified: /usr/lib/<triplet>/pkgconfig/clp.pc), so
@@ -37,10 +58,10 @@ tar xzf ibex.tar.gz --strip-components=1
 # On gcc-11/aarch64: -frounding-math and -ffloat-store compile (configure
 # probes pass), -msse3 fails but the wscript probes it mandatory=False with
 # -msse2/plain fallbacks — verified safe.
-CXXFLAGS=-std=c++0x ./waf configure \
+CXXFLAGS=-std=c++0x "$WAF_PY" ./waf configure \
     --enable-shared --with-optim --with-solver --with-affine-extended \
     --interval-lib=filib --lp-lib=clp --prefix="${PREFIX}"
-./waf install
+"$WAF_PY" ./waf install
 
 # arm64: strip the x86-only flags that ibex.pc.in bakes in unconditionally
 # (identical fix to cell C's Homebrew formula — "Patch 3: drop x86-only
