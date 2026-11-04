@@ -155,6 +155,56 @@ comm -3 runs/failed.B.txt runs/failed.E.txt   # → 1 line: the build-failed tar
 comm -3 runs/failed.B.txt runs/failed.F.txt   # → that line + timer_test
 ```
 
+---
+
+## Round 3 — cell C2: macOS re-measured under a pinned Python 3.14
+
+Status: **predictions below pre-registered before the run** (house rule:
+written before results existed). Not yet run when this section landed.
+
+### Why / what changed vs cell C
+
+Cell C's 303/445 ran under Homebrew's then-default `python3` = **3.15.2**
+— the boundary is recorded in README "Python interpreter history":
+**`e6d31b4` is the last commit measured under 3.15.** dreal4 now treats
+**Python 3.14 as a prerequisite on macOS** and pins it itself:
+
+- dreal4 `6a0c0cc` — `.bazelrc` `build:macos` section →
+  `--repo_env=PYTHON_BIN_PATH=/opt/homebrew/bin/python3.14`, placed above
+  the `try-import user.bazelrc` (later options win ⇒ locally
+  overridable); Linux keeps PATH's python3, so cells A/B/E/F are
+  untouched by construction;
+- dreal4 `1ea8627` — the missing-interpreter failure now names the
+  prerequisite instead of a `--define` hint that stopped working long ago;
+- dreal4 README — "Tested interpreter: Python 3.14" note (committed
+  before this run, so the measured commit includes it).
+
+Verification of the switch (done before running anything):
+`external/local_config_python/BUILD` says
+`interpreter_path = "/opt/homebrew/bin/python3.14"` and the include tree
+is `python@3.14/…/include/python3.14`. (First attempt with `bazel query`
+showed 3.15 — query does not apply `build:` sections; noted because the
+repo rule only invalidates on an actual env change.)
+
+### Prediction (to be scored after the run)
+
+| # | prediction |
+|---|---|
+| 1 | 445 targets, `no loading errors`, `Executed … of 445` |
+| 2 | **exactly the 119 `*_cpplint` labels flip** fail→pass vs cell C |
+| 3 | everything else stays as cell C: the 21 `unsat`-cluster + `get_value_01` still fail (Python cannot touch solver answers); `timer_test` is a coin flip (C failed it, E passed, F failed) |
+| 4 | ⇒ expected **421–422 pass / 445**, i.e. `failed.C2` = C's non-cpplint failures, `\|failed.C2\|` = 22–23 |
+| 5 | **anything else moving = real signal** → stop and attribute before reporting |
+
+Method otherwise identical to cell C: bare metal, same host, same
+clang/ibex, `-k --cache_test_results=no //...`, artifacts
+`runs/{bazel-test.C2.log,failed.C2.txt,completeness.C2.txt,
+env-manifest.C2.txt,exit-code.C2.txt}`. Two variables technically moved
+vs C: the interpreter *and* two dreal4 tooling commits on top of
+`e6d31b4` (rc pin + failure message) — both are interpreter-selection /
+message-only, no build input of any test target changes besides which
+python runs the py_tests.
+
 ## Environment findings during bring-up (all resolved container-side)
 
 These are tooling/portability observations for follow-up commits to
