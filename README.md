@@ -106,6 +106,24 @@ report.md                                                # comm -3 diffs + attri
 Compare lists with `comm -3 runs/failed.A.txt runs/failed.B.txt`;
 never compare raw counts (equal counts can hide swapped targets).
 
+### Python interpreter history (evidence boundary)
+
+Cell C's recorded numbers (445 tests, **303 pass / 142 fail**) were
+measured under the host's **Python 3.15.2** — Homebrew's unversioned
+`python3`, which had moved to `python@3.15` two days earlier. The 119
+`*_cpplint` failures are that interpreter, not this OS or this code:
+`import sre_compile` (gone in 3.15, still present — deprecated — in
+3.12/3.14, verified) is all cpplint needs to die at import time.
+
+**The last dreal4 commit measured under Python 3.15 is `e6d31b4`** — the
+state recorded above and mirrored in `dreal4/README.md` at that commit.
+From the commit that follows this note, dreal4 pins its macOS test runs
+to **Python 3.14** (`.bazelrc` macOS section, prerequisite
+`brew install python@3.14`); the re-measurement at the new pin is
+recorded as cell **C2** below. This measurement is superseded, not
+deleted: it stays the record of what 3.15 does to the suite, and it is
+what proves which bucket of failures is Python-version-driven.
+
 ## Known state of cell C (recap; authoritative copy in dreal4/README.md)
 
 See `dreal4/README.md` → “Testing on macOS: Current Status” for the full
