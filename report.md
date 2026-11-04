@@ -667,3 +667,29 @@ prefixes deleted).** Expected: A 445/445; B 444 (+`timer_test` ±1);
 D/E 444 (known `-Wdangling-reference` unbuild + `timer_test` ±1); C = the
 frozen 22 (+`timer_test` ±1) on the base config of gate 1. Any target
 outside those sets ⇒ the offending strip gets reverted, not argued with.
+
+**T-h — PRE-REGISTRATION (before any measurement): is ibex "the same"
+on macOS vs Linux, given both build from literally the same commit?**
+Ground truth under test: mac harness build and the `dreal-ref:22.04`
+image build both source-build `dreal-deps/ibex-lib@352eeeb` (the gate-1
+strip left mac on brew-2.7.4 for cell C, but *this audit uses the harness
+prefix* `~/.local/opt/ibex-352eeeb` so source equality with the container
+is exact-by-construction). Four audits, expectations committed first:
+- **A1 installed header trees diff (`find`+sha256):** P = identical or
+  identical-except-configure-generated settings headers.
+- **A2 `ibex.pc` diff:** P = differ in prefix `-L` paths *and* Cflags
+  platform flags (documented precedent: ibex.pc advertises `-msse3`/
+  `-ffloat-store`; vendored formula strips the x86 one on arm64).
+- **A3 exported symbols (`nm`):** P = ibex-own symbols equal, totals
+  differ by std ABI (libc++ vs libstdc++ mangling/inline-namespace tags).
+- **A4 VALUE PROBE (load-bearing):** tiny program compiled+run against
+  each side's libibex, printing hex doubles (`%a`) for a fixed table of
+  interval ops incl. transcendentals. P = arithmetic (`+ - * / sqr`)
+  **byte-identical** (IEEE ops, same ISA); transcendentals (`sin cos
+  atan exp log pow sqrt` endpoints) show the T-c-class ≤1-ulp bit diffs.
+Scoring: arithmetic divergence ⇒ fenv/contract-below-ibex class (candidate
+1) upgraded to *inside ibex's arithmetic*; transcendental-only ⇒ candidate
+2 (OS libm) demonstrated where ibex actually pays; total identity ⇒ ibex+libm
+cleared end-to-end ⇒ divergence must live above ibex (dreal side) or in
+process FP state, and the linux-vs-mac ibex story is exonerated as a
+numerics difference. Artifacts: `runs/T-h-*.{txt,diff}`.
