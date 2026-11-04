@@ -60,6 +60,101 @@ Conclusion: cell C's 142 failures are 100% environment-attributable and
 none of them warrant touching solver code (ground rule 2 respected: nothing
 was "fixed" in dreal4 for them).
 
+---
+
+## Round 2 — same code, modern OS: cells E and F
+
+**Verdict: OS modernisation moves no test behaviour.** Cells E (Ubuntu
+24.04) and F (Fedora 43), both running cell B's exact commit `e6d31b4`,
+executed the **identical 445-target set** and produced no behavioural
+difference: every target that built, passed — the full 240-target
+smt2/dr line-diff corpus, the gtests, the Python API tests and both
+119-target cpplint suites included. The entire delta vs cell B is one
+target that no longer *builds* on GCC ≥ 13, plus the known timer flake.
+
+### Matrix — round 2
+
+| cell | code | OS / toolchain | result |
+|---|---|---|---|
+| B | `e6d31b4` | Ubuntu 22.04.5, gcc 11.4, Python 3.10.12, gmp 6.2.1, clp 1.17.5, nlopt 2.7.1 | **445/445 pass** (reference) |
+| E | `e6d31b4` | Ubuntu 24.04.5, gcc 13.3, Python 3.12.3, gmp 6.3.0, clp 1.17.9, nlopt 2.7.1 | **444/445 pass, 1 fails to build** (bazel rc 1) |
+| F | `e6d31b4` | Fedora 43, gcc 15.3, Python 3.14.8, gmp 6.3.0, clp 1.17.10, nlopt 2.10.0 | **443/445 pass, 1 fails to build, 1 fail** (bazel rc 1) |
+
+Images, with full package manifests in `runs/env-manifest.<cell>.txt`:
+E = `dreal-ref:24.04` `3e25babda5a7dcb6…`, F =
+`dreal-ref:fedora-43` `1066b7d27b9ee2d2…`. Held constant vs B: the
+commit, ibex `352eeeb` source-built at `/opt/libibex/2.7.4`, Bazel
+7.0.0 (sha-pinned), the driver, `--cache_test_results=no`, the machine
+budget, and one image per cell pinned by id. Target-set check (equal
+counts can hide swapped targets): `comm -3` of the full PASSED label
+lists is empty for B↔E and B↔F — 445 labels each, pairwise identical.
+
+### `comm -3` vs cell B (col 1 = B-only, col 2 = cell-only)
+
+```
+B vs E:  	//dreal/contractor:contractor_ibex_fwdbwd_test
+B vs F:  	//dreal/contractor:contractor_ibex_fwdbwd_test
+	//dreal/util:timer_test
+```
+
+### Attribution
+
+1. `contractor_ibex_fwdbwd_test` — **build-level, and it is the
+   compiler**: `-Werror=dangling-reference` on
+   `const auto& x = ibex::ExprSymbol::new_();` at
+   `dreal/contractor/test/contractor_ibex_fwdbwd_test.cc:134-136`,
+   identical failure in E (gcc 13) and F (gcc 15) and in no other file in
+   either cell. `-Wdangling-reference` is new in GCC 13, and here it is
+   wrong: ibex's header declares
+   `static const ExprSymbol& new_(const Dim& = …)` — a factory returning
+   a reference to a heap object, not a temporary; it becomes fatal purely
+   because dreal builds its own targets with `-Werror`. The target shows
+   as `NO STATUS` (never executed), so this is *not* a test outcome
+   change — and cell C (Apple clang) builds and passes it.
+   Not "fixed": cells stay pinned. Candidate for the pending follow-up
+   dreal4 round alongside `gmp_repository.bzl` (e.g.
+   `-Wno-dangling-reference` for the target) → then a fresh A′/B′ pair.
+2. `//dreal/util:timer_test` in F only — the known timing flake:
+   failed once in B round 1, passed in B round 2 and in E, failed here.
+   Non-deterministic, recorded honestly in `runs/flaky.F.txt` /
+   `failed.F.txt`.
+
+### Prediction scorecard (pre-registered in harness/NOTES.md)
+
+| prediction | verdict |
+|---|---|
+| E ≈ 445/445 modulo a gcc-13 `-Werror` surprise | kept — narrowly: the single miss *is* a gcc-13 `-Werror` surprise (build level) |
+| E: 119 cpplints pass | ✅ 119/119 |
+| F: 119 cpplint failures (`sre_compile` gone since Python ≥3.13) | ❌ **wrong**: all 119 **pass** on 3.14.8 — `import sre_compile` still works there (DeprecationWarning; verified in both images). The module survives at least through 3.14; cell C's host Python (3.15) is where it's gone. The cpplint class is therefore *host Python ≥3.15*, not "modern Python ≥3.13", and dreal4/README's wording needs correcting in the docs round |
+| E+F: 21 unsat-cluster + `get_value_01` pass | ✅ all pass (spot-checked `ea_01`, `exist_forall_04`, `minimize_03`, both `api_test`s, `get_value_01`) — the wrong-answer cluster stays mac-only, and does *not* reappear with nlopt 2.10 / clp 1.17.10 / gcc-15 |
+| F: gcc-15 `-Werror` build risk | ✅ realized, as the one build failure above (gcc-13 too) — and only that one |
+| `timer_test` may flake anywhere | ✅ flaked in F |
+
+### What rounds 1–2 now say about cell B vs C
+
+Of cell C's 142 failures, **none appear on any modern Linux OS**:
+
+- 119 cpplint → needs Python ≥3.15 (verified not distro-level: Fedora
+  43's stock 3.14 passes all of them; so does noble's 3.12);
+- 21 `unsat`-instead-of-`delta-sat` + the 1-ULP `get_value_01` →
+  mac-specific: two *newer* Linux stacks (gcc 13/15, nlopt 2.10, clp
+  1.17.9/10, same ibex source) all answer correctly;
+- 1 `timer_test` → non-deterministic, seen on Linux too (F), just later.
+
+So: OS modernisation in general ⇒ zero behavioural drift; the only
+Linux-modern delta is a compiler warning at build level, and cell C's
+failures are 100% macOS-host environment (unchanged conclusion,
+now cross-checked against two more distributions).
+
+### Reproduce round 2
+
+```bash
+podman machine start
+harness/run-all.sh E F                       # images built on demand; runs, collects, diffs vs B
+comm -3 runs/failed.B.txt runs/failed.E.txt   # → 1 line: the build-failed target
+comm -3 runs/failed.B.txt runs/failed.F.txt   # → that line + timer_test
+```
+
 ## Environment findings during bring-up (all resolved container-side)
 
 These are tooling/portability observations for follow-up commits to

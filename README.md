@@ -38,8 +38,10 @@ Matrix (a "cell" = code × environment):
 | B | branch `e6d31b4` (`modernize-macos` tip, current submodule pin) | reference container | **measured: 445/445 pass** |
 | C | branch `e6d31b4` | this Mac (macOS, Apple Silicon) | **measured: 445 tests, 303 pass / 142 fail** |
 | D | base `f93bdcc` | this Mac | doesn't even configure/build — that is why the modernization exists; out of scope (build-level, not test-level) |
+| E | branch `e6d31b4` (same code as B) | **modern Ubuntu**: Ubuntu 24.04 container (gcc 13, Python 3.12, gmp 6.3.0) | **measured: 444/445 pass, 1 fails to build (GCC≥13 warning), behavioural diff vs B = none** |
+| F | branch `e6d31b4` (same code as B) | **modern Fedora**: Fedora 43 container (gcc 15, Python 3.14, nlopt 2.10) | **measured: 443/445 (same build failure + `timer_test` flake), behavioural diff vs B = none** |
 
-Two comparisons, two questions:
+Three comparisons, three questions:
 
 - **A vs B** (same environment): did our 13 commits change behavior?
   Expected difference: **none** — and measured difference is none: both
@@ -52,6 +54,17 @@ Two comparisons, two questions:
   `optional.hpp` emplace port.
 - **B vs C** (same code): which failures are environment? These are
   recorded and attributed, not "fixed" by touching solver code.
+- **B vs E** and **B vs F** (same code, newer OS): did OS modernization
+  in general move any test outcome? One variable per cell — same commit,
+  same ibex commit, same Bazel 7.0.0, same harness — only the
+  distribution (and its compiler/Python/system libraries) changes.
+  Measured: **no behavioural change** — target sets identically 445,
+  everything that built passed on both; the whole delta is one target
+  that GCC ≥ 13 refuses to build (`-Wdangling-reference` false positive
+  under `-Werror`) plus the known `timer_test` flake. Evidence +
+  prediction scorecard: [`report.md`](report.md); the environment-side
+  container accommodations and the pre-registered predictions:
+  [`harness/NOTES.md`](harness/NOTES.md).
 
 ### Ground rules (from the maintainer)
 
@@ -155,13 +168,27 @@ Homebrew at `/opt/homebrew`; ibex 2.7.4 from the formula vendored in
 ```
 dreal4/            submodule → git@github.com:muck-stump/dreal4.git
                    .gitmodules pins the `modernize-macos` branch
-runs/              (planned) one failed.<cell>.txt per completed run
-report.md          (planned) the A-vs-B / B-vs-C diffs + attribution
+harness/           test harness: one Containerfile* per environment image,
+                   cells.env (commit × image × recipe per cell),
+                   run-all.sh / run-cell.sh / collect.sh, install-*.sh,
+                   in-container-test.sh (the driver baked into every image)
+runs/              per-cell artifacts: failed.<cell>.txt (comparison artifact),
+                   completeness.<cell>.txt, env-manifest.<cell>.txt, *.log
+report.md          the A/B/B-vs-C (+B-vs-E/F) diffs + attribution
 ```
 
 This superproject currently has **no remote** (local repo only).
 
 ## Usage
+
+One entry point for a round of container cells (missing image → built on
+demand; two cells in parallel at the measured budget):
+
+```bash
+harness/run-all.sh E F      # → runs/failed.{E,F}.txt + comm -3 diffs vs cell B
+```
+
+Single-cell pieces (what run-all.sh drives), and the A/B reference round:
 
 Create the workspace (submodule included):
 
@@ -201,6 +228,8 @@ Not done, in order:
 1. Fold the conclusions from `report.md` back into `dreal4/README.md`
    as documentation commits (submodule deliberately untouched so far).
 2. Optional: tier-0 smoke run against the prebuilt `dreal/dreal4` image.
-3. Optional follow-up round: the `gmp_repository.bzl` arch-probe fix as
-   a normal dreal4 commit → re-pin → fresh A′/B′ pair (until then, the
-   image's gmp.h symlink carries both cells equally).
+3. Optional follow-up round: the `gmp_repository.bzl` arch-probe fix **and
+   the round-2 `-Wdangling-reference` build fix** as normal dreal4
+   commits → re-pin → fresh A′/B′ pair (until then, the image's gmp.h
+   symlink carries both cells equally, and GCC ≥ 13 keeps one test
+   unbuildable).

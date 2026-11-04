@@ -1,0 +1,210 @@
+# cell E environment manifest
+# image: dreal-ref:24.04 (3e25babda5a7dcb614e9aaeee6bdac3dcf4f8a6758b2b48ff72fe5188bf3adfd)
+PRETTY_NAME="Ubuntu 24.04.5 LTS"
+NAME="Ubuntu"
+VERSION_ID="24.04"
+VERSION="24.04.5 LTS (Noble Numbat)"
+VERSION_CODENAME=noble
+ID=ubuntu
+ID_LIKE=debian
+HOME_URL="https://www.ubuntu.com/"
+SUPPORT_URL="https://help.ubuntu.com/"
+BUG_REPORT_URL="https://bugs.launchpad.net/ubuntu/"
+PRIVACY_POLICY_URL="https://www.ubuntu.com/legal/terms-and-policies/privacy-policy"
+UBUNTU_CODENAME=noble
+LOGO=ubuntu-logo
+arch: aarch64
+bazel: bazel 7.0.0
+gcc: g++ (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0
+python: Python 3.12.3
+ibex: n/a
+clp: 1.17.9
+nlopt: 2.7.1
+gmp: 6.3.0
+
+Desired=Unknown/Install/Remove/Purge/Hold
+| Status=Not/Inst/Conf-files/Unpacked/halF-conf/Half-inst/trig-aWait/Trig-pend
+|/ Err?=(none)/Reinst-required (Status,Err: uppercase=bad)
+||/ Name                          Version                       Architecture Description
++++-=============================-=============================-============-================================================================================
+ii  apt                           2.8.3                         arm64        commandline package manager
+ii  base-files                    13ubuntu10.5                  arm64        Debian base system miscellaneous files
+ii  base-passwd                   3.6.3build1                   arm64        Debian base system master password and group files
+ii  bash                          5.2.21-2ubuntu4               arm64        GNU Bourne Again SHell
+ii  binutils                      2.42-4ubuntu2.10              arm64        GNU assembler, linker and binary utilities
+ii  binutils-aarch64-linux-gnu    2.42-4ubuntu2.10              arm64        GNU binary utilities, for aarch64-linux-gnu target
+ii  binutils-common:arm64         2.42-4ubuntu2.10              arm64        Common files for the GNU assembler, linker and binary utilities
+ii  bison                         2:3.8.2+dfsg-1ubuntu0.24.04.1 arm64        YACC-compatible parser generator
+ii  bsdutils                      1:2.39.3-9ubuntu6.6           arm64        basic utilities from 4.4BSD-Lite
+ii  ca-certificates               20260816ubuntu0.24.04.1       all          Common CA certificates
+ii  coinor-libclp-dev:arm64       1.17.9+ds-1                   arm64        Coin-or linear programming solver (developer files)
+ii  coinor-libclp1:arm64          1.17.9+ds-1                   arm64        Coin-or linear programming solver (shared libraries)
+ii  coinor-libcoinutils-dev:arm64 2.11.4+repack1-4              arm64        COIN-OR collection of utility classes (developer files)
+ii  coinor-libcoinutils3v5:arm64  2.11.4+repack1-4              arm64        COIN-OR collection of utility classes (shared libraries)
+ii  coinor-libosi-dev:arm64       0.108.9+ds-1                  arm64        COIN-OR Open Solver Interface (developer files)
+ii  coinor-libosi1v5:arm64        0.108.9+ds-1                  arm64        COIN-OR Open Solver Interface
+ii  coreutils                     9.4-3ubuntu6.3                arm64        GNU core utilities
+ii  cpp                           4:13.2.0-7ubuntu1             arm64        GNU C preprocessor (cpp)
+ii  cpp-13                        13.3.0-6ubuntu2~24.04.1       arm64        GNU C preprocessor
+ii  cpp-13-aarch64-linux-gnu      13.3.0-6ubuntu2~24.04.1       arm64        GNU C preprocessor for aarch64-linux-gnu
+ii  cpp-aarch64-linux-gnu         4:13.2.0-7ubuntu1             arm64        GNU C preprocessor (cpp) for the arm64 architecture
+ii  dash                          0.5.12-6ubuntu5               arm64        POSIX-compliant shell
+ii  debconf                       1.5.86ubuntu1                 all          Debian configuration management system
+ii  debianutils                   5.17build1                    arm64        Miscellaneous utilities specific to Debian
+ii  diffutils                     1:3.10-1ubuntu0.1             arm64        File comparison utilities
+ii  dpkg                          1.22.6ubuntu6.6               arm64        Debian package management system
+ii  e2fsprogs                     1.47.0-2.4~exp1ubuntu4.1      arm64        ext2/ext3/ext4 file system utilities
+ii  findutils                     4.9.0-5build1                 arm64        utilities for finding files--find, xargs
+ii  flex                          2.6.4-8.2build1               arm64        fast lexical analyzer generator
+ii  g++                           4:13.2.0-7ubuntu1             arm64        GNU C++ compiler
+ii  g++-13                        13.3.0-6ubuntu2~24.04.1       arm64        GNU C++ compiler
+ii  g++-13-aarch64-linux-gnu      13.3.0-6ubuntu2~24.04.1       arm64        GNU C++ compiler for aarch64-linux-gnu architecture
+ii  g++-aarch64-linux-gnu         4:13.2.0-7ubuntu1             arm64        GNU C++ compiler for the arm64 architecture
+ii  gcc                           4:13.2.0-7ubuntu1             arm64        GNU C compiler
+ii  gcc-13                        13.3.0-6ubuntu2~24.04.1       arm64        GNU C compiler
+ii  gcc-13-aarch64-linux-gnu      13.3.0-6ubuntu2~24.04.1       arm64        GNU C compiler for the aarch64-linux-gnu architecture
+ii  gcc-13-base:arm64             13.3.0-6ubuntu2~24.04.1       arm64        GCC, the GNU Compiler Collection (base package)
+ii  gcc-14-base:arm64             14.2.0-4ubuntu2~24.04.1       arm64        GCC, the GNU Compiler Collection (base package)
+ii  gcc-aarch64-linux-gnu         4:13.2.0-7ubuntu1             arm64        GNU C compiler for the arm64 architecture
+ii  gpgv                          2.4.4-2ubuntu17.6             arm64        GNU privacy guard - signature verification tool
+ii  grep                          3.11-4build1                  arm64        GNU grep, egrep and fgrep
+ii  gzip                          1.12-1ubuntu3.2               arm64        GNU compression utilities
+ii  hostname                      3.23+nmu2ubuntu2              arm64        utility to set/show the host name or domain name
+ii  init-system-helpers           1.66ubuntu1                   all          helper tools for all init systems
+ii  libacl1:arm64                 2.3.2-1build1.1               arm64        access control list - shared library
+ii  libapt-pkg6.0t64:arm64        2.8.3                         arm64        package management runtime library
+ii  libasan8:arm64                14.2.0-4ubuntu2~24.04.1       arm64        AddressSanitizer -- a fast memory error detector
+ii  libassuan0:arm64              2.5.6-1build1                 arm64        IPC library for the GnuPG components
+ii  libatomic1:arm64              14.2.0-4ubuntu2~24.04.1       arm64        support library providing __atomic built-in functions
+ii  libattr1:arm64                1:2.5.2-1ubuntu0.1            arm64        extended attribute handling - shared library
+ii  libaudit-common               1:3.1.2-2.1ubuntu0.1          all          Dynamic library for security auditing - common files
+ii  libaudit1:arm64               1:3.1.2-2.1ubuntu0.1          arm64        Dynamic library for security auditing
+ii  libbinutils:arm64             2.42-4ubuntu2.10              arm64        GNU binary utilities (private shared library)
+ii  libblas-dev:arm64             3.12.0-3build1.1              arm64        Basic Linear Algebra Subroutines 3, static library
+ii  libblas3:arm64                3.12.0-3build1.1              arm64        Basic Linear Algebra Reference implementations, shared library
+ii  libblkid1:arm64               2.39.3-9ubuntu6.6             arm64        block device ID library
+ii  libbz2-1.0:arm64              1.0.8-5.1ubuntu0.1            arm64        high-quality block-sorting file compressor library - runtime
+ii  libbz2-dev:arm64              1.0.8-5.1ubuntu0.1            arm64        high-quality block-sorting file compressor library - development
+ii  libc-bin                      2.39-0ubuntu8.9               arm64        GNU C Library: Binaries
+ii  libc-dev-bin                  2.39-0ubuntu8.9               arm64        GNU C Library: Development binaries
+ii  libc6:arm64                   2.39-0ubuntu8.9               arm64        GNU C Library: Shared libraries
+ii  libc6-dev:arm64               2.39-0ubuntu8.9               arm64        GNU C Library: Development Libraries and Header Files
+ii  libcap-ng0:arm64              0.8.4-2build2                 arm64        alternate POSIX capabilities library
+ii  libcap2:arm64                 1:2.66-5ubuntu2.4             arm64        POSIX 1003.1e capabilities (library)
+ii  libcc1-0:arm64                14.2.0-4ubuntu2~24.04.1       arm64        GCC cc1 plugin for GDB
+ii  libcom-err2:arm64             1.47.0-2.4~exp1ubuntu4.1      arm64        common error description library
+ii  libcrypt-dev:arm64            1:4.4.36-4build1              arm64        libcrypt development files
+ii  libcrypt1:arm64               1:4.4.36-4build1              arm64        libcrypt shared library
+ii  libctf-nobfd0:arm64           2.42-4ubuntu2.10              arm64        Compact C Type Format library (runtime, no BFD dependency)
+ii  libctf0:arm64                 2.42-4ubuntu2.10              arm64        Compact C Type Format library (runtime, BFD dependency)
+ii  libdb5.3t64:arm64             5.3.28+dfsg2-7                arm64        Berkeley v5.3 Database Libraries [runtime]
+ii  libdebconfclient0:arm64       0.271ubuntu3                  arm64        Debian Configuration Management System (C-implementation library)
+ii  libexpat1:arm64               2.6.1-2ubuntu0.6              arm64        XML parsing C library - runtime library
+ii  libexpat1-dev:arm64           2.6.1-2ubuntu0.6              arm64        XML parsing C library - development kit
+ii  libext2fs2t64:arm64           1.47.0-2.4~exp1ubuntu4.1      arm64        ext2/ext3/ext4 file system libraries
+ii  libffi8:arm64                 3.4.6-1build1                 arm64        Foreign Function Interface library runtime
+ii  libfl-dev:arm64               2.6.4-8.2build1               arm64        static library for flex (a fast lexical analyzer generator)
+ii  libfl2:arm64                  2.6.4-8.2build1               arm64        SHARED library for flex (a fast lexical analyzer generator)
+ii  libgcc-13-dev:arm64           13.3.0-6ubuntu2~24.04.1       arm64        GCC support library (development files)
+ii  libgcc-s1:arm64               14.2.0-4ubuntu2~24.04.1       arm64        GCC support library
+ii  libgcrypt20:arm64             1.10.3-2ubuntu0.2             arm64        LGPL Crypto library - runtime library
+ii  libgfortran5:arm64            14.2.0-4ubuntu2~24.04.1       arm64        Runtime library for GNU Fortran applications
+ii  libgmp-dev:arm64              2:6.3.0+dfsg-2ubuntu6.1       arm64        Multiprecision arithmetic library developers tools
+ii  libgmp10:arm64                2:6.3.0+dfsg-2ubuntu6.1       arm64        Multiprecision arithmetic library
+ii  libgmpxx4ldbl:arm64           2:6.3.0+dfsg-2ubuntu6.1       arm64        Multiprecision arithmetic library (C++ bindings)
+ii  libgnutls30t64:arm64          3.8.3-1.1ubuntu3.6            arm64        GNU TLS library - main runtime library
+ii  libgomp1:arm64                14.2.0-4ubuntu2~24.04.1       arm64        GCC OpenMP (GOMP) support library
+ii  libgpg-error0:arm64           1.47-3build2.1                arm64        GnuPG development runtime library
+ii  libgprofng0:arm64             2.42-4ubuntu2.10              arm64        GNU Next Generation profiler (runtime library)
+ii  libhogweed6t64:arm64          3.9.1-2.2build1.1             arm64        low level cryptographic library (public-key cryptos)
+ii  libhwasan0:arm64              14.2.0-4ubuntu2~24.04.1       arm64        AddressSanitizer -- a fast memory error detector
+ii  libidn2-0:arm64               2.3.7-2build1.1               arm64        Internationalized domain names (IDNA2008/TR46) library
+ii  libisl23:arm64                0.26-3build1.1                arm64        manipulating sets and relations of integer points bounded by linear constraints
+ii  libitm1:arm64                 14.2.0-4ubuntu2~24.04.1       arm64        GNU Transactional Memory Library
+ii  libjansson4:arm64             2.14-2build2                  arm64        C library for encoding, decoding and manipulating JSON data
+ii  liblapack-dev:arm64           3.12.0-3build1.1              arm64        Library of linear algebra routines 3 - static version
+ii  liblapack3:arm64              3.12.0-3build1.1              arm64        Library of linear algebra routines 3 - shared version
+ii  liblsan0:arm64                14.2.0-4ubuntu2~24.04.1       arm64        LeakSanitizer -- a memory leak detector (runtime)
+ii  liblz4-1:arm64                1.9.4-1build1.1               arm64        Fast LZ compression algorithm library - runtime
+ii  liblzma5:arm64                5.6.1+really5.4.5-1ubuntu0.4  arm64        XZ-format compression library
+ii  libmd0:arm64                  1.1.0-2build1.1               arm64        message digest functions from BSD systems - shared library
+ii  libmount1:arm64               2.39.3-9ubuntu6.6             arm64        device mounting library
+ii  libmpc3:arm64                 1.3.1-1build1.1               arm64        multiple precision complex floating-point library
+ii  libmpfr6:arm64                4.2.1-1build1.1               arm64        multiple precision floating-point computation
+ii  libncursesw6:arm64            6.4+20240113-1ubuntu2.2       arm64        shared libraries for terminal handling (wide character support)
+ii  libnettle8t64:arm64           3.9.1-2.2build1.1             arm64        low level cryptographic library (symmetric and one-way cryptos)
+ii  libnlopt-cxx-dev:arm64        2.7.1-5build2                 arm64        nonlinear optimization library -- development package for C++
+ii  libnlopt-cxx0:arm64           2.7.1-5build2                 arm64        nonlinear optimization library (C++ interface)
+ii  libnlopt-dev:arm64            2.7.1-5build2                 arm64        nonlinear optimization library -- development package
+ii  libnlopt0:arm64               2.7.1-5build2                 arm64        nonlinear optimization library
+ii  libnpth0t64:arm64             1.6-3.1build1                 arm64        replacement for GNU Pth using system threads
+ii  libp11-kit0:arm64             0.25.3-4ubuntu2.2             arm64        library for loading and coordinating access to PKCS#11 modules - runtime
+ii  libpam-modules:arm64          1.5.3-5ubuntu5.7              arm64        Pluggable Authentication Modules for PAM
+ii  libpam-modules-bin            1.5.3-5ubuntu5.7              arm64        Pluggable Authentication Modules for PAM - helper binaries
+ii  libpam-runtime                1.5.3-5ubuntu5.7              all          Runtime support for the PAM library
+ii  libpam0g:arm64                1.5.3-5ubuntu5.7              arm64        Pluggable Authentication Modules library
+ii  libpcre2-8-0:arm64            10.42-4ubuntu2.1              arm64        New Perl Compatible Regular Expression Library- 8 bit runtime files
+ii  libpkgconf3:arm64             1.8.1-2build1                 arm64        shared library for pkgconf
+ii  libproc2-0:arm64              2:4.0.4-4ubuntu3.3            arm64        library for accessing process information from /proc
+ii  libpsl5t64:arm64              0.21.2-1.1build1              arm64        Library for Public Suffix List (shared libraries)
+ii  libpython3-dev:arm64          3.12.3-0ubuntu2.1             arm64        header files and a static library for Python (default)
+ii  libpython3.12-dev:arm64       3.12.3-1ubuntu0.17            arm64        Header files and a static library for Python (v3.12)
+ii  libpython3.12-minimal:arm64   3.12.3-1ubuntu0.17            arm64        Minimal subset of the Python language (version 3.12)
+ii  libpython3.12-stdlib:arm64    3.12.3-1ubuntu0.17            arm64        Interactive high-level object-oriented language (standard library, version 3.12)
+ii  libpython3.12t64:arm64        3.12.3-1ubuntu0.17            arm64        Shared Python runtime library (version 3.12)
+ii  libreadline8t64:arm64         8.2-4build1                   arm64        GNU readline and history libraries, run-time libraries
+ii  libseccomp2:arm64             2.5.5-1ubuntu3.1              arm64        high level interface to Linux seccomp filter
+ii  libselinux1:arm64             3.5-2ubuntu2.1                arm64        SELinux runtime shared libraries
+ii  libsemanage-common            3.5-1build5                   all          Common files for SELinux policy management libraries
+ii  libsemanage2:arm64            3.5-1build5                   arm64        SELinux policy management library
+ii  libsepol2:arm64               3.5-2build1                   arm64        SELinux library for manipulating binary security policies
+ii  libsframe1:arm64              2.42-4ubuntu2.10              arm64        Library to handle the SFrame format (runtime library)
+ii  libsmartcols1:arm64           2.39.3-9ubuntu6.6             arm64        smart column output alignment library
+ii  libsqlite3-0:arm64            3.45.1-1ubuntu2.8             arm64        SQLite 3 shared library
+ii  libss2:arm64                  1.47.0-2.4~exp1ubuntu4.1      arm64        command-line interface parsing library
+ii  libssl3t64:arm64              3.0.13-0ubuntu3.16            arm64        Secure Sockets Layer toolkit - shared libraries
+ii  libstdc++-13-dev:arm64        13.3.0-6ubuntu2~24.04.1       arm64        GNU Standard C++ Library v3 (development files)
+ii  libstdc++6:arm64              14.2.0-4ubuntu2~24.04.1       arm64        GNU Standard C++ Library v3
+ii  libsystemd0:arm64             255.4-1ubuntu8.18             arm64        systemd utility library
+ii  libtasn1-6:arm64              4.19.0-3ubuntu0.24.04.2       arm64        Manage ASN.1 structures (runtime)
+ii  libtinfo6:arm64               6.4+20240113-1ubuntu2.2       arm64        shared low-level terminfo library for terminal handling
+ii  libtsan2:arm64                14.2.0-4ubuntu2~24.04.1       arm64        ThreadSanitizer -- a Valgrind-based detector of data races (runtime)
+ii  libubsan1:arm64               14.2.0-4ubuntu2~24.04.1       arm64        UBSan -- undefined behaviour sanitizer (runtime)
+ii  libudev1:arm64                255.4-1ubuntu8.18             arm64        libudev shared library
+ii  libunistring5:arm64           1.1-2build1.1                 arm64        Unicode string library for C
+ii  libuuid1:arm64                2.39.3-9ubuntu6.6             arm64        Universally Unique ID library
+ii  libxxhash0:arm64              0.8.2-2build1                 arm64        shared library for xxhash
+ii  libzstd1:arm64                1.5.5+dfsg2-2build1.1         arm64        fast lossless compression algorithm
+ii  linux-libc-dev:arm64          6.8.0-147.147                 arm64        Linux Kernel Headers for development
+ii  login                         1:4.13+dfsg1-4ubuntu3.2       arm64        system login tools
+ii  logsave                       1.47.0-2.4~exp1ubuntu4.1      arm64        save the output of a command in a log file
+ii  m4                            1.4.19-4build1                arm64        macro processing language
+ii  make                          4.3-4.1build2                 arm64        utility for directing compilation
+ii  mawk                          1.3.4.20240123-1build1        arm64        Pattern scanning and text processing language
+ii  media-types                   10.1.0                        all          List of standard media types and their usual file extension
+ii  mount                         2.39.3-9ubuntu6.6             arm64        tools for mounting and manipulating filesystems
+ii  ncurses-base                  6.4+20240113-1ubuntu2.2       all          basic terminal type definitions
+ii  ncurses-bin                   6.4+20240113-1ubuntu2.2       arm64        terminal-related programs and man pages
+ii  netbase                       6.4                           all          Basic TCP/IP networking system
+ii  openssl                       3.0.13-0ubuntu3.16            arm64        Secure Sockets Layer toolkit - cryptographic utility
+ii  passwd                        1:4.13+dfsg1-4ubuntu3.2       arm64        change and administer password and group data
+ii  perl-base                     5.38.2-3.2ubuntu0.6           arm64        minimal Perl system
+ii  pkg-config:arm64              1.8.1-2build1                 arm64        manage compile and link flags for libraries (transitional package)
+ii  pkgconf:arm64                 1.8.1-2build1                 arm64        manage compile and link flags for libraries
+ii  pkgconf-bin                   1.8.1-2build1                 arm64        manage compile and link flags for libraries (binaries)
+ii  procps                        2:4.0.4-4ubuntu3.3            arm64        /proc file system utilities
+ii  python3-minimal               3.12.3-0ubuntu2.1             arm64        minimal subset of the Python language (default python3 version)
+ii  python3.12-minimal            3.12.3-1ubuntu0.17            arm64        Minimal subset of the Python language (version 3.12)
+ii  readline-common               8.2-4build1                   all          GNU readline and history libraries, common files
+ii  rpcsvc-proto                  1.4.2-0ubuntu7                arm64        RPC protocol compiler and definitions
+ii  sed                           4.9-2ubuntu0.24.04.1          arm64        GNU stream editor for filtering/transforming text
+ii  sensible-utils                0.0.22                        all          Utilities for sensible alternative selection
+ii  sysvinit-utils                3.08-6ubuntu3                 arm64        System-V-like utilities
+ii  tar                           1.35+dfsg-3ubuntu0.4          arm64        GNU version of the tar archiving utility
+ii  tzdata                        2026e-0ubuntu0.24.04.1        all          time zone and daylight-saving time data
+ii  ubuntu-keyring                2023.11.28.1                  all          GnuPG keys of the Ubuntu archive
+ii  unminimize                    0.2.1                         arm64        Un-minimize your minimial images or setup
+ii  util-linux                    2.39.3-9ubuntu6.6             arm64        miscellaneous system utilities
+ii  wget                          1.21.4-1ubuntu4.5             arm64        retrieves files from the web
+ii  zlib1g:arm64                  1:1.3.dfsg-3.1ubuntu2.3       arm64        compression library - runtime
+ii  zlib1g-dev:arm64              1:1.3.dfsg-3.1ubuntu2.3       arm64        compression library - development

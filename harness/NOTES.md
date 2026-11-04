@@ -118,6 +118,115 @@ in the bazel test summary table (`NO STATUS` = couldn't build under `-k`).
   `timer_test` failed once in round 1 and passed in round 2 (identical
   sources between pins) → flake, both rounds recorded honestly.
 
+## Round 2 — OS-modernisation cells E and F (running)
+
+Question: B's code on a current distribution — did OS modernisation in
+general move any test result? One variable per cell.
+
+- **E** = ubuntu:24.04 (noble): gcc 13.3, Python 3.12.3, gmp 6.3.0,
+  clp 1.17.9, nlopt 2.7.1
+- **F** = fedora:43: gcc 15.3, Python 3.14.8, gmp 6.3.0, clp 1.17.10,
+  nlopt 2.10.0
+- both: commit `e6d31b4` (= cell B), ibex `352eeeb` source-built at
+  /opt/libibex/2.7.4, Bazel 7.0.0 sha-pinned, same driver, batches of
+  2 at the measured 4 CPU / 6 GiB budget
+- harness change: `cells.env` now holds commit × image × recipe per cell
+  (accessors `cell_commit/image/recipe`, `CELLS` list), run-cell/collect
+  are cell-agnostic and record a per-cell `runs/env-manifest.<cell>.txt`,
+  and **`harness/run-all.sh <cells…>` is the single entry point**
+  (build-if-missing → run batch → collect → `comm -3` vs cell B).
+
+### Distro facts probed in the base images before writing any recipe
+
+- Fedora names for the 22.04 list: `coin-or-Clp-devel` ↔ coinor-libclp-dev
+  (verified: `dnf provides '*/clp.pc'` → /usr/lib64/pkgconfig/clp.pc,
+  1.17.10), `NLopt-devel` ↔ libnlopt-cxx-dev (capital letters; **nlopt
+  2.10.0** vs reference 2.7.1), gmp-devel ships /usr/include/gmp.h =
+  exactly the gmp rule's Fedora branch → no symlink fix needed; flex.
+  python3.10 IS archived (reason for the WAF choice below).
+- noble: `python3-distutils` does not exist; ppa:dreal/dreal has no noble
+  release; and **no python3.10/3.11 in the archive at all**.
+- Neither distro has an ibex package (Ubuntu's came from the PPA) →
+  source build as always.
+
+### Container-side accommodations (harness-only; captured here, results in report.md)
+
+1. noble package list = upstream's 22.04 heredoc verbatim minus
+   `python3-distutils` and minus the `add-apt-repository` PPA step
+   (ibex source-built). Dropping the PPA step also removes the gpg-agent
+   trap the 22.04 recipe needs a pre-install for.
+2. **ca-certificates**: the trimmed apt list (--no-install-recommends)
+   lost wget's CA bundle → wget fails rc=5 "SSL certificate problem" on
+   codeload.github.com; the reference image only had it transitively via
+   the PPA tooling. Added explicitly (build #2 died exactly there).
+3. **gmp.h symlink**: needed on both Ubuntu images (the
+   tools/gmp_repository.bzl multiarch gap); Fedora needs none — the
+   recipe only guards `test -e /usr/include/gmp.h` so a future change
+   fails the image loudly rather than silently dropping ~259 targets
+   (the round-1 lesson).
+4. **ibex vs modern libstdc++**: GCC ≥ 13 stopped transitively including
+   <cstdint>, and ibex 2.7.4 (2022) uses uint32_t without including it.
+   Measured: noble/gcc-13 errors in ibex_Cov.h + ibex_Cov.cpp +
+   ibex_CovIBUList.cpp; fedora/gcc-15 in ibex_Cov.h +
+   ibex_CovSolverData.cpp (all cascade off ibex_Cov.h:106).
+   Fix: opt-in `IBEX_CSTDINT_FIX=1` in install-ibex.sh prepends
+   `#include <cstdint>` to the two hot spots. The reference recipe does
+   NOT set it → 22.04 builds exactly what it always did (gcc-11 doesn't
+   need it; proven to build clean under both new compilers afterwards).
+5. **ibex's build tool vs Python ≥ 3.11**, three separate walls:
+   waf 2.0.12 does `import imp` (gone in 3.12) and `open(…, 'rU')`
+   (gone in 3.11); ibex's wscript does `from distutils.version import
+   LooseVersion` (gone in 3.12). Fix = give the *build tool* a CPython
+   3.10 via `WAF_PY` (install-ibex.sh), so A/B/E/F are built by the same
+   interpreter version while each cell's tests still run its distro's
+   stock Python — the variable under measurement:
+   - F: `dnf install python3.10` (native archive package);
+   - E: noble packages no old CPython → multi-stage recipe
+     `FROM ubuntu:22.04 AS jammy-py` grafts jammy's python3.10 +
+     stdlib (binary needs only libexpat1 beyond base — ldd-checked).
+   Dead ends, recorded so nobody retries them: pypy3 (3.9, has imp, but
+   waf's subprocess layer dies with a pickle error); an `imp` shim on
+   PYTHONPATH + sed-ing the extracted waflib ('rU'→'r') — clears two
+   walls, then hits distutils…
+
+### Predictions (to be scored in report.md — written before results)
+
+- **E**: 119 cpplints PASS (sre_compile exists until Python 3.13) —
+  i.e. cell C's cpplint class should NOT reproduce on noble; the 21
+  unsat-cluster + get_value_01 should pass (Linux/g++/ibex@352eeeb =
+  the reference's own stack); timer_test may flake. Overall ≈ 445/445
+  modulo gcc-13 `-Werror` surprises.
+- **F**: the 119 cpplint failures SHOULD reproduce (Python 3.14 ≥ 3.13,
+  same class as cell C) — that would localise the class to *Python
+  version*, not *macOS*. Everything else expected green. Watch items:
+  nlopt 2.10.0 vs 2.7.1 and clp 1.17.10 vs 1.17.5 (optimization tests
+  ⇒ attribution: system-library version = environment), gcc-15 -Werror
+  on dreal's own sources (a build-level failure would be a cell-D-class
+  outcome — incomplete-run detection lives in completeness.<cell>.txt).
+- Scoring intent: if E is fully green and F fails only cpplints, then OS
+  modernisation moves nothing solver-relevant, and cell C's 142 stay
+  fully macOS-host-attributed.
+
+### Scored (results: report.md → "Round 2")
+
+- E = 444/445, F = 443/445; target sets 445 = 445 = 445 with empty
+  `comm -3` of the label lists (B↔E, B↔F). Behavioural diff: **none**.
+- The anticipated gcc `-Werror` surprise arrived — as exactly one build
+  failure in both cells: `-Wdangling-reference` false positive on
+  `ibex::ExprSymbol::new_()` (a heap-object factory) at
+  contractor_ibex_fwdbwd_test.cc:134-136; new warning in GCC 13, so it
+  needs an explicit new-distro toolchain to appear at all.
+- **cpplint-on-F prediction wrong**: 119/119 pass on Python 3.14.8 —
+  `sre_compile` is only *deprecated* there (import verified in both
+  images); cell C's host 3.15 is where it's gone. Correct "removed in
+  Python ≥3.13" to "≥3.15" in dreal4/README during the docs round; the
+  class is host-python, now confirmed not-distro-level.
+- unsat-21 + get_value_01 pass in E and F ✓ — the mac-only cluster also
+  survives nlopt 2.10 / clp 1.17.10 / gcc-15.
+- `timer_test` flaked in F only ✓.
+- Net: one build-level compiler-warning delta + one timing flake, zero
+  behavioural drift → cell C's 142 remain fully mac-attributed.
+
 ## Status
 
 - [x] podman installed + machine created (6.1.4, applehv, arm64, 8/12288/60,
@@ -140,7 +249,10 @@ in the bazel test summary table (`NO STATUS` = couldn't build under `-k`).
       `get_value_01` env-caused, `timer_test` flaky)
 - [ ] conclusions folded into `dreal4/README.md` as docs commits
       *(maintainer step — submodule intentionally untouched so far)*
+- [x] round 2 (cells E/F, OS-modernisation): images built
+      (`dreal-ref:24.04` = 3e25babda5a7…, `dreal-ref:fedora-43` =
+      1066b7d27b9e…) and both cells run via `run-all.sh E F`:
+      E 444/445, F 443/445, behavioural drift vs B = none (see the
+      Scored block above and report.md)
 - [ ] optional follow-up round: fix `gmp_repository.bzl` arch probe as a
       normal dreal4 commit → new pin → fresh A'/B' pair
-- [ ] optional tier-0 smoke: prebuilt `dreal/dreal4` image on the failing
-      cell-C inputs (indicative only)
