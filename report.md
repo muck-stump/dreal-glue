@@ -543,3 +543,28 @@ recipe (default-tuning harness-ibex@352eeeb rebuild without trial
 executed, fails = the frozen 22 + that run's known `timer_test` flake —
 0 cluster drift. `runs/ibex.C.txt` records resolution; `hypotheses.md`
 carries the leadger and ranked open questions.
+
+**T-g — PRE-REGISTRATION (written before any run exists).**
+Question: is the 22-cluster a property of *Apple's* clang fork, or does it
+survive a different frontend at fixed OS/SDK/libm/HW? Trial = rebuild both
+halves with **LLVM-project clang** (brew `llvm`, keg-only, unmodified
+upstream build; Darwin/userspace/silicon untouched; ibex source constant
+at `352eeeb`, rebuilt into its own trial prefix as in T-d — the only Δ vs
+C baseline = the compiler frontends apple-clang-21 → upstream-LLVM).
+Dialect probes (capability checks, no outcomes seen): llvm clang accepts
+`-mmacos-version-min=11.0`, `-Wno-deprecated-builtins`.
+Scoring pre-commit: strict-fail count among the frozen 22 (same rubric as
+T-d: `timer_test` flake and `get_value_01` ULP excluded; C2 rosenbrock
+pair tolerated; an incomplete build invalidates the run → rerun).
+Scoring branches:
+- **P-persist (recorded expectation), ≥15 of 22 still fail:** compiler
+  *fork* fully exonerated; mechanism is Darwin-side (system repair or
+  fundraising interrupted) — favor candidate 2 (fenv/rounding/flush-to-
+  zero state) + knife-edge amplification of the ≤1-ulp differences (T-c),
+  discriminate next with a single-binary value trace (Mac vs Linux VM,
+  same expressions, printed at contractor steps).
+- **P-collapse, ≤3 of 22 fail:** Apple's clang-specific codegen/pipeline
+  is implicated — surprising given T-d's gcc-22/22, would demand reconcilia-
+  tion (faction co-causes or T-d's chain artifact), follow-up: shrink A/B.
+- **4–14 (gap):** both mechanisms coexist; report the measured split and
+  re-rank (LLVM-version-on-Mac vs Darwin-state probes).
