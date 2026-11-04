@@ -1,0 +1,23 @@
+== T-l port census: cell C vs ibex 2.9.1 — INVALID RUN (BUILD DID NOT COMPLETE: 285 fail to build, 160 executed)
+== distinct 'error:' classes:
+   5 no member named 'LinearizerCombo' in namespace 'ibex'
+   1 static_cast from 'element_type *' (aka 'dreal::ContractorCell *') to 'typename shared_ptr<dreal::ContractorIbexPolytope>::element_type *' (aka 'dreal::ContractorIbexPolytope *'), which are not related by inheritance, is not allowed
+   1 static assertion failed due to requirement 'is_nothrow_move_constructible<ibex::IntervalVector>::value': Box::IntervalVector should be nothrow_move_constructible.
+   1 static assertion failed due to requirement 'is_nothrow_move_constructible<ibex::Interval>::value': Box::Interval should be nothrow_move_constructible.
+   1 static assertion failed due to requirement 'is_nothrow_move_constructible<dreal::Box>::value': Box should be nothrow_move_constructible.
+   1 private field 'linear_relax_combo_' is not used [-Werror,-Wunused-private-field]
+   1 no member named 'XNEWTON' in 'ibex::LinearizerCompo'
+   1 no member named 'LinearizerCombo' in namespace 'ibex'; did you mean 'LinearizerCompo'?
+   1 no matching constructor for initialization of 'Contractor'
+   1 incompatible pointer types assigning to '__shared_weak_count *' from 'std::__shared_ptr_emplace<dreal::ContractorIbexPolytope, std::allocator<dreal::ContractorIbexPolytope>> *'
+   1 cannot initialize object parameter of type 'dreal::ContractorCell' with an expression of type 'dreal::ContractorIbexPolytope'
+   1 cannot initialize object parameter of type 'const dreal::ContractorCell' with an expression of type 'ContractorIbexPolytope'
+== total error instances: 16
+== which dreal TUs broke (first 12):
+dreal/contractor/contractor_cell.cc
+dreal/contractor/contractor_ibex_polytope_mt.cc
+dreal/contractor/contractor_ibex_polytope_mt.h
+dreal/contractor/contractor_ibex_polytope.cc
+dreal/contractor/contractor_ibex_polytope.h
+dreal/contractor/contractor.cc
+dreal/util/test/box_test.cc

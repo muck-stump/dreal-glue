@@ -876,3 +876,42 @@ no deps) WITHOUT touching the base config; gates + predictions first:
   the *error census* is the product: port size, line count in
   `runs/T-l-port-census.txt`.
 Artifacts: runs/T-l-*.
+
+**T-l AMENDMENT (drafted BEFORE the cell run; committed after — the
+original add failed on a missing census file, so git timestamps this
+late; no outcome-dependent text is in it):** G-base
+passed (stock still 2.7.4). P-sel: layout probe found no old selector
+(2.9 restructured rounding_control — text census next); **P-behav
+FALSIFIED: ibex 2.9.1 on darwin rounds OUTWARD on every arithmetic
+decoder** (`add …334`, `sub …334`, `div …112`, `sqr …47b`, `tiny …29` =
+the linux-gcc pattern) ⇒ candid restatement of branches given new info:
+now expect **P-fix-lean (≤3 of frozen 22)**; if instead ≥15 persist, a
+*second* darwin mechanism exists beyond the rounding selector into which
+2.9's fix does not reach. Value-probe also shows 2.9 changes some
+transcendental extensions by 1 ulp (logI/exp/atan/pow/sqrtI rows) —
+new-line semantics note for scoring new-fails. Probe compiled ⇒ at least
+the Interval surface dreal uses is source-compatible (P-build risk now
+reduced, full build still unknown). Cell run next.
+
+**T-l SCORED — P-build branch TAKEN: the 2.9 cell run is INVALID**
+(445-tally: 160 executed / 285 fail to build; "BUILD DID NOT COMPLETE"
+from the completeness flag; per the rule, `failed.C` is NOT scored and
+the P-fix/P-persist branches stay UNRESOLVED pending a port or a
+different lever). Product delivered as registered: `runs/T-l-port-census.txt`
+(distinct error classes + broken-TU list). Preliminary: the Interval
+surface probes fine (value-probe compiled) — breakage is in the
+expression/system/contractor surface (`Function`, `System`, ctors…).
+Structural note: 2.9's `.pc` links `-lgaol` (and friends) under
+`lib/ibex/3rd` — i.e. **2.9 swapped the interval kernel family away from
+the old filib-era rounding selector we root-caused**; `find` shows no
+`rounding_control*` headers and no `__STDC_IEC_559__` references under
+2.9's `3rd/` at all → the value-probe's outward rows are that new kernel
+working on darwin. So the upgrade and the macro-define are two distinct
+fix paths now: (i) **force the old kernel honest** — `-D__STDC_IEC_559__`
+into ibex build + dreal copts (trial-knob only, no source edits,
+mechanism says this selects iso9x and darwin *proven* to honor
+fesetround), vs (ii) **port dreal to 2.9** (census attached, real code
+work). Cell C restored to canonical base config in the next run.
+Sequence-integrity note for the record: T-l's original registration was
+committed before everything shown here; the amendment header above
+explains its late timestamp.
