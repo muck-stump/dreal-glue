@@ -7,8 +7,15 @@
 # the deployment-target flag differently and rejects the warning names
 # outright (see the shakeout record in report.md, T-d). This shim translates
 # the one semantic flag and drops the six purely-diagnostic ones — the code
-# under test, optimization level, and machine are untouched. Named
-# gcc-16-compat / g++-16-compat (symlink); dispatch on $0.
+# under test, optimization level, and machine are untouched.
+#
+# Link-side duties (same trial, found attempt-by-attempt): expand @file
+# params before filtering; add -lstdc++ (gcc doesn't auto-link C++ runtime);
+# put the gcc-built gmpxx first on -L — Homebrew's libgmpxx is
+# clang/libc++-ABI-built and gcc's std::ostream mangling doesn't resolve
+# against it (nlopt/clp/coinutils link clean; gmpxx is the only clash).
+#
+# Named gcc-16-compat / g++-16-compat (symlink); dispatch on $0.
 set -euo pipefail
 
 case "$0" in
@@ -45,5 +52,9 @@ link=1
 for a in "${args[@]}"; do
   case "$a" in -c|-E|-S|-fsyntax-only|-M|-MM) link=0 ;; esac
 done
-[ "$link" = 1 ] && args+=("-lstdc++")
+if [ "$link" = 1 ]; then
+  args+=("-lstdc++")
+  _gmp=/Users/josh/.local/opt/gmp-gcc16/lib
+  [ -d "$_gmp" ] && args=(-L"$_gmp" "${args[@]}")
+fi
 exec "$real" "${args[@]}"
