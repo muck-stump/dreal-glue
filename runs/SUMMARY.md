@@ -1,6 +1,6 @@
 # dreal4 cell status
 
-Generated: `2026-11-04T04:07:43Z` by `harness/summary.sh` — do not edit;
+Generated: `2026-11-04T04:07:59Z` by `harness/summary.sh` — do not edit;
 regenerated after every run (`harness/run-all.sh`). Evidence lives in git.
 
 | cell | code | environment | result |
