@@ -1,3 +1,2 @@
-# T-j: ibex-352eeeb built by clang-14 (dreal-trial-clang:22.04, glibc)
-compiler: Ubuntu clang version 14.0.0-1ubuntu1.1
-pc cflags: -frounding-math -I/art/ibex/include -I/art/ibex/include/ibex -I/art/ibex/include/ibex/3rd -I/usr/include/coin
+# T-j: ibex-352eeeb built by clang-14 (/usr/local/bin/clang++-14-compat --version | head -1)
+pc cflags: -frounding-math -I/tmp/ibex/include -I/tmp/ibex/include/ibex -I/tmp/ibex/include/ibex/3rd -I/usr/include/coin

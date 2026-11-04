@@ -804,3 +804,25 @@ output, independent of my scoring:** clang-14 on aarch64-linux warns
 dynamic rounding-mode changes on this target while GCC kept quiet.
 Attempt 2 = build AND probe in one container session (no cross-session
 volumes), scoring branches unchanged.
+
+**T-j SCORED — P2b TAKEN.** clang-14/glibc-libstdc++-built ibex (same
+commit, same `-O2 -ffp-contract=off` + `-frounding-math` receipts)
+rounds **outward** on every decoder (`add …334`, `sqr …47b`, `tiny …29`)
+= the linux pattern, like linux-gcc. (Its compile *warned*
+"unsupported rounding mode … overridden" yet outcomes are correct —
+warning ≠ our failure signature.) Grid now: **darwin/2-of-2-compilers =
+nearest; linux/2-of-2-constructors = outward.** Rounding-loss tracks the
+OS, not the compiler → the 22-cluster mechanism candidate; T-e's six are
+*excluded* from rounding and keep their own (codegen-class) lane.
+Artifacts: `runs/T-j-receipt.txt`, `runs/T-j-rounding.txt`.
+
+**K — PRE-REGISTRATION (mechanism pull, read-only):** T-h A1 says the
+rounding_control headers are byte-identical across OS builds → whatever
+diverges must be (a) a preprocessor-selectable branch in that text
+(Pka: some `__APPLE__`/target-guard makes darwin skip or neuter the
+mode-set dance) or (b) identical-at-runtime path but divergent flag/
+codegen plumbing that survives -frounding-math only on darwin (Pkb).
+Reads: which rounding primitive + its `#if` tree; whether the dance lives
+in headers (visible to every TU) or inside libibex `.cpp` (waf-owned
+flags only); `nm -i round` for lib-level rounding symbols. Either branch
+keeps fenv-exoneration from T-h follow-on intact.
