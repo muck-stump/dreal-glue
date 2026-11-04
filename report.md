@@ -856,3 +856,23 @@ clang14-outward both fall out; T-e's 6 remain outside rounding (its
 cells link gcc-11-built ibex = native macro = iso9x). Session-1 linux
 nm-of-0 (`runs/T-j-*`) recorded as a capture anomaly, superseded by the
 fresh session's 3 refs. Artifact: `runs/K-mechanism.txt`.
+
+**T-l — PRE-REGISTRATION (ibex 2.9.1: the user's original upgrade trial,
+now mechanism-informed).** Install stock homebrew `ibex` 2.9.1 (arm64,
+no deps) WITHOUT touching the base config; gates + predictions first:
+- **G-base:** after install, stock `pkg-config --modversion ibex` MUST
+  still be 2.7.4 (round-6 base config untampered); if brew's link step
+  disturbs it, restore + record.
+- **P-sel:** 2.9's selector still lands `void`-on-darwin (same
+  filsib-era mechanism upstream rather than reworked) ⇒
+- **P-behav:** T-h value table vs 2.9 = nearest (byte-equal mac rows).
+- **P-score (cell C against 2.9, if it builds):** **≥15 of the frozen 22
+  still fail** (= mechanism survives upgrade) with ≤4 *new* targets
+  outside it; **P-fix branch: ≤3 of 22 fail** ⇒ upgrade genuinely clears
+  the darwin mechanism (then Linux-on-2.9 rerun = mandatory stage-2 for
+  any green claim, one-variable-per-cell re-baseline caveat as before).
+- **P-build:** if 2.9's API breaks the link/compile (install_prereqs
+  documents "incompatible API"), the run is invalid-as-test-score and
+  the *error census* is the product: port size, line count in
+  `runs/T-l-port-census.txt`.
+Artifacts: runs/T-l-*.
