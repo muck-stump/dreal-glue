@@ -38,4 +38,12 @@ for a in "${raw[@]}"; do
   esac
   args+=("$a")
 done
+# bazel's CppLink goes through the CC (gcc, not g++): gcc never auto-links
+# libstdc++ → every C++ link dies on std::__cxx11 symbols (attempt 3).
+# Add it for link-shaped invocations only (nothing when -c/-E/-S/--syntax).
+link=1
+for a in "${args[@]}"; do
+  case "$a" in -c|-E|-S|-fsyntax-only|-M|-MM) link=0 ;; esac
+done
+[ "$link" = 1 ] && args+=("-lstdc++")
 exec "$real" "${args[@]}"

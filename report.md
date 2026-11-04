@@ -447,3 +447,13 @@ real gcc expands the response file *internally* — dodging the filter
 **Shim v2 (registered before attempt 3):** expand `@`-files inside the
 shim first, then filter (adds `-fobjc-link-runtime` to the dropped
 apple-dialect set). Trial semantics unchanged; scoring branches unchanged.
+
+**T-d attempt 3 (record):** compiles 100% through except the pre-known
+gcc≥13 `-Wdangling-reference` trio at
+`dreal/contractor/test/contractor_ibex_fwdbwd_test.cc:134-136` — byte-
+identical to cells D/E recorded position, i.e. that wire reproduced under
+gcc-16/mac too. 64 links then died: bazel's CppLink driver = `gcc`
+(no auto libstdc++, undefined `std::__cxx11::*` references).
+**Shim v3 (registered before attempt 4):** append `-lstdc++` on
+link-shaped invocations (detected via absence of -c/-E/-S/--syntax-only) —
+still trial infrastructure; scoring branches unchanged.
