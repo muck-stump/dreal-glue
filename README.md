@@ -217,6 +217,9 @@ runs/              per-cell artifacts: failed.<cell>.txt (comparison artifact),
                    completeness.<cell>.txt, env-manifest.<cell>.txt, *.log,
                    SUMMARY.md (generated; the human view)
 report.md          the A/B/B-vs-C (+B-vs-D/E) diffs + attribution
+hypotheses.md      the investigation ledger: every trial (python pin, ibex
+                   swap, OS matrix…), what worked / what was falsified,
+                   and the ranked next trials
 ```
 
 This superproject currently has **no remote** (local repo only).
