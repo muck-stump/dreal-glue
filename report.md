@@ -633,3 +633,20 @@ off the CC value). Scoring branches unchanged (4699a23). If this attempt
 raises a *novel* validator class, stop and reassess rather than iterating
 further — three infrastructure accommodations has been the honest cost of
 running an untested compiler.
+
+**T-g ATTEMPT 4: VALID FULL RUN (445/445, 0 validator hits) — SCORED.**
+Failing set **byte-identical** to the canonical baseline: all frozen 22 +
+the `timer_test` flake; ibex receipt shows the trial prefix (llvm-built
+`352eeeb`). ≥15-of-22 persist branch: **P-persist TAKEN — the *fork* is
+exonerated.** Apple clang 21, upstream LLVM-project 23.1.4 (different
+driver, different bundled stdlib, different builtin toolchain), and brew
+gcc-16: three compilers, same 22 on this Mac. Combined with clang-14 =
+6/22 and gcc = 0/22 on Linux, the fork/version axis contributes nothing;
+what remains is the Darwin runtime/SDK seam itself: system libc++/libm
+knife-edge behavior (T-c: ≤1 ulp), fenv/rounding/flush-to-zero machine
+state, or SDK-level behavior — all three candidate classes are now the
+*only* unexcluded ones, and none of them is "the compiler".
+Honest cost note for the record: 4 attempts, 3 infrastructure
+accommodations (libc++23 headers → driver depfile-entry → verifier stderr
+parse), each registered before its run; no test outcome was seen before
+its registration.
