@@ -793,3 +793,14 @@ cflags incl `-frounding-math`, `LD_LIBRARY_PATH` set).
   the T-e six ⇒ the 6-slice keeps its own second-mechanism status
   (contraction/other codegen), fitting its smaller membership.
 Artifacts: `runs/T-j-*.txt`.
+
+**T-j attempt 1 (record):** ibex built fine with clang-14 in the T-e
+image (receipt: `-frounding-math` present), probe compile refused the
+mounted include tree ("Permission denied" — cross-container volume
+observation issue, not ibex's). **Borrowed evidence in that compile
+output, independent of my scoring:** clang-14 on aarch64-linux warns
+`overriding currently unsupported rounding mode on this target
+[-Wunsupported-floating-point-opt]` — LLVM explicitly *overrides*
+dynamic rounding-mode changes on this target while GCC kept quiet.
+Attempt 2 = build AND probe in one container session (no cross-session
+volumes), scoring branches unchanged.
