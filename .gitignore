@@ -3,3 +3,6 @@ runs/*.log
 runs/exit-code.*
 runs/flaky.*
 runs/passed.*
+
+# staged cell runs (mid-run; the collected runs/*.<cell>.* files are the evidence)
+runs/.stage-*

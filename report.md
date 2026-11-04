@@ -10,9 +10,17 @@ is empty (both files are 0 bytes).
 | cell | code | environment | state |
 |---|---|---|---|
 | A | base `f93bdcc26b62abdcc30ad7de6046729bb48016b9` | reference container | **measured: 445/445 pass** (bazel rc 0) |
-| B | `e6d31b485d3ed828725e2c093c610031def17a3c` (`modernize-macos` tip) | reference container | **measured: 445/445 pass** (bazel rc 0) |
-| C | branch `e6d31b4` | this Mac (macOS, Apple Silicon) | measured: 445, 303 pass / 142 fail |
-| D | base `f93bdcc` | this Mac | does not configure/build (build-level; why the modernization exists) |
+| B | `e6d31b485d3ed828725e2c093c610031def17a3c` (`modernize-macos`) | reference container | **measured: 445/445 pass** (bazel rc 0) |
+| C | `51c93b9` (= B + macOS pin/docs commits; the submodule pin) | this Mac (macOS, Apple Silicon), Python 3.14 pinned | measured: 445, 423 pass / 22 fail |
+| D | `e6d31b4` (same code as B) | Ubuntu 24.04 container | measured: 444, 444 pass / 1 unbuildable; behavioural diff vs B = none |
+| E | `e6d31b4` (same code as B) | Fedora 43 container | measured: 444, 443 pass / 1 unbuildable / 1 flake; behavioural diff vs B = none |
+
+(Letters were standardized after round 2: old C2 → C, old E → D, old F →
+E. A pre-harness probe of cell A’s code on this Mac — doesn't configure,
+build-level, why the modernization exists — predates the scheme and has no
+artifacts. Older readings, including the Python 3.15 era measured 303/142,
+live in this file's git history; `harness/summary.sh` regenerates the
+current view from `runs/`.)
 
 **A vs B (same environment):** target-set diff *and* failing-set diff are
 both empty → ground rule 1 holds: no passing-in-A test fails in B, and no

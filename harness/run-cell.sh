@@ -30,6 +30,22 @@ git -C "$ROOT/dreal4" cat-file -e "$COMMIT^{commit}" || {
 test -z "$(git -C "$ROOT/dreal4" status --porcelain)" || {
   echo "dreal4/ has uncommitted changes; the A/B needs a pristine checkout" >&2; exit 1; }
 
+# Host cell: no image — the checkout under test is the submodule itself,
+# run bare on this machine with the same shared driver, artifacts staged in
+# runs/ where collect.sh harvests them like any cell volume.
+if [ "$(cell_kind "$CELL")" = host ]; then
+  HEAD_SHA=$(git -C "$ROOT/dreal4" rev-parse HEAD)
+  [ "$HEAD_SHA" = "$COMMIT" ] || {
+    echo "cell $CELL: dreal4 HEAD $HEAD_SHA != pinned commit $COMMIT" >&2; exit 1; }
+  STAGE="$ROOT/runs/.stage-$CELL"
+  rm -rf "$STAGE"; mkdir -p "$STAGE"
+  echo "cell $CELL (host): testing $HEAD_SHA at $ROOT/dreal4"
+  rc=0
+  "$ROOT/harness/test-driver.sh" "$STAGE" "$ROOT/dreal4" || rc=$?
+  echo "cell $CELL finished (bazel rc=$rc) — now: harness/collect.sh $CELL"
+  exit 0
+fi
+
 cell_ensure_image "$CELL"
 
 NAME="dreal-cell-$CELL"

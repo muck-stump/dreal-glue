@@ -14,6 +14,45 @@ cell_known "$CELL" || {
 IMAGE=$(cell_image "$CELL")
 NAME="dreal-cell-$CELL"
 
+# Host cell: harvest the driver's staging dir instead of a container volume,
+# and write an env manifest of the machine itself (the macOS equivalent of
+# collect.sh's dpkg/rpm dump: OS build, toolchain, library versions, git pin).
+if [ "$(cell_kind "$CELL")" = host ]; then
+  STAGE="$ROOT/runs/.stage-$CELL"
+  [ -f "$STAGE/failed.txt" ] || {
+    echo "no staged run for cell $CELL (runs/.stage-$CELL) — run-cell.sh $CELL first" >&2; exit 1; }
+  sort -u "$STAGE/failed.txt"  > "$ROOT/runs/failed.$CELL.txt"
+  cp "$STAGE/flaky.txt"        "$ROOT/runs/flaky.$CELL.txt"
+  cp "$STAGE/bazel-test.log"   "$ROOT/runs/bazel-test.$CELL.log"
+  cp "$STAGE/exit-code.txt"    "$ROOT/runs/exit-code.$CELL.txt"
+  cp "$STAGE/completeness.txt" "$ROOT/runs/completeness.$CELL.txt"
+  {
+    echo "# cell $CELL environment manifest (host cell: this Mac, bare metal)"
+    echo "# commit under test: $(git -C "$ROOT/dreal4" rev-parse HEAD)"
+    sw_vers
+    echo "arch: $(uname -m)"
+    echo "clang: $(clang --version 2>/dev/null | head -1)"
+    echo "python (pinned for py_tests): $(/opt/homebrew/bin/python3.14 -V 2>&1)"
+    echo "host default python3 (NOT used): $(python3 -V 2>&1)"
+    echo "bazel: $(cd "$ROOT/dreal4" && bazel --version 2>/dev/null)  # bazelisk honours .bazelversion"
+    for p in ibex clp nlopt gmp; do
+      echo "$p: $(pkg-config --modversion "$p" 2>/dev/null || echo n/a)"
+    done
+    echo
+    echo "--- dreal4 git ---"
+    git -C "$ROOT/dreal4" log --oneline -5
+  } > "$ROOT/runs/env-manifest.$CELL.txt"
+  rm -rf "$STAGE"
+  echo "collected (host cell):"
+  echo "  runs/failed.$CELL.txt        ($(wc -l < "$ROOT/runs/failed.$CELL.txt") failing targets, bazel rc=$(cat "$ROOT/runs/exit-code.$CELL.txt"))"
+  echo "  runs/flaky.$CELL.txt         ($(wc -l < "$ROOT/runs/flaky.$CELL.txt") flaky-then-passed)"
+  echo "  runs/completeness.$CELL.txt:"
+  sed 's/^/    /' "$ROOT/runs/completeness.$CELL.txt"
+  echo "  runs/env-manifest.$CELL.txt"
+  echo "  runs/bazel-test.$CELL.log    (full log)"
+  exit 0
+fi
+
 echo "waiting for $NAME ..."
 podman wait "$NAME" >/dev/null
 

@@ -56,8 +56,9 @@ RUN bash /tmp/install-ibex.sh && rm -f /tmp/install-ibex.sh
 COPY harness/install-bazel.sh /tmp/install-bazel.sh
 RUN bash /tmp/install-bazel.sh && rm -f /tmp/install-bazel.sh
 
-# The in-container test driver both cells run identically.
-COPY harness/in-container-test.sh /usr/local/bin/dreal-cell-test
+# The test driver every cell runs identically — the same file a host cell
+# (cell C, macOS) executes bare, so the failure parser can't drift per cell.
+COPY harness/test-driver.sh /usr/local/bin/dreal-cell-test
 RUN chmod +x /usr/local/bin/dreal-cell-test
 
 # Portability symlink for dreal's gmp repository rule: tools/gmp_repository.bzl

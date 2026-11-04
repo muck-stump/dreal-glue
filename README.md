@@ -34,13 +34,19 @@ Matrix (a "cell" = code × environment):
 
 | cell | code | environment | state |
 |---|---|---|---|
-| A | base `f93bdcc` (original, pre-modernization) | reference container (Ubuntu) | **measured: 445/445 pass** |
-| B | branch `e6d31b4` (`modernize-macos` tip, current submodule pin) | reference container | **measured: 445/445 pass** |
-| C | branch `e6d31b4` | this Mac (macOS, Apple Silicon), Python **3.15.2** | **measured: 445 tests, 303 pass / 142 fail** |
-| C2 | tip `f37a1c1` (3 pin/note commits past `e6d31b4`) | this Mac, Python **3.14 pinned** (`brew install python@3.14`) | **measured: 445/445 executed, 423 pass / 22 fail — all 119 cpplint flip to pass; the 22 = C's non-Python failures** |
-| D | base `f93bdcc` | this Mac | doesn't even configure/build — that is why the modernization exists; out of scope (build-level, not test-level) |
-| E | branch `e6d31b4` (same code as B) | **modern Ubuntu**: Ubuntu 24.04 container (gcc 13, Python 3.12, gmp 6.3.0) | **measured: 444/445 pass, 1 fails to build (GCC≥13 warning), behavioural diff vs B = none** |
-| F | branch `e6d31b4` (same code as B) | **modern Fedora**: Fedora 43 container (gcc 15, Python 3.14, nlopt 2.10) | **measured: 443/445 (same build failure + `timer_test` flake), behavioural diff vs B = none** |
+| A | base `f93bdcc` (original, pre-modernization) | ubuntu 22.04 reference container | **measured: 445/445 pass** |
+| B | `e6d31b4` (`modernize-macos`) | ubuntu 22.04 reference container | **measured: 445/445 pass** |
+| C | `51c93b9` (= modernized + macOS pin/docs commits; the submodule pin) | this Mac (macOS, Apple Silicon), Python **3.14 pinned** | **445/445 executed, 423 pass / 22 fail** — the "unsat cluster" + 1 ULP, both below |
+| D | `e6d31b4` (same code as B) | **Ubuntu 24.04** container (gcc 13, Python 3.12, gmp 6.3.0) | **measured: 444/445 pass**, 1 unbuildable (GCC≥13 `-Wdangling-reference` under `-Werror`), behavioural diff vs B = none |
+| E | `e6d31b4` (same code as B) | **Fedora 43** container (gcc 15, Python 3.14, nlopt 2.10) | **measured: 443/445** (same build failure + `timer_test` flake), behavioural diff vs B = none |
+
+Letter standardization: the five letters are fixed from here on. Older
+readings map as **old C2 → current C** (cell C runs the pinned Python 3.14
+recipe and overwrites itself in git from now on), **old E → D**, **old F →
+E**; a pre-harness probe of the base commit on this Mac ("doesn't configure/
+build") predates the scheme and was never a cell. Earlier measurements stay
+readable in git history. `harness/summary.sh` regenerates the table above
+live from `runs/` — it is the human pass/fail view.
 
 Three comparisons, three questions:
 
@@ -55,7 +61,7 @@ Three comparisons, three questions:
   `optional.hpp` emplace port.
 - **B vs C** (same code): which failures are environment? These are
   recorded and attributed, not "fixed" by touching solver code.
-- **B vs E** and **B vs F** (same code, newer OS): did OS modernization
+- **B vs D** and **B vs E** (same code, newer OS): did OS modernization
   in general move any test outcome? One variable per cell — same commit,
   same ibex commit, same Bazel 7.0.0, same harness — only the
   distribution (and its compiler/Python/system libraries) changes.
@@ -66,11 +72,12 @@ Three comparisons, three questions:
   prediction scorecard: [`report.md`](report.md); the environment-side
   container accommodations and the pre-registered predictions:
   [`harness/NOTES.md`](harness/NOTES.md).
-- **C vs C2** (same host, one interpreter, two tooling commits): which of
-  cell C's failures were Python? Exactly the 119 cpplints — they pass on
-  re-run while the 21 cluster + ULP stay (`failed.C2.txt` = 22, zero
-  cpplint). dreal4 now treats Python 3.14 as an macOS prerequisite and
-  pins it in `.bazelrc`; see report.md, round 3.
+- **C under Python 3.15 → under 3.14** (same host, one interpreter
+  variable): which of cell C's failures were Python? Exactly the 119
+  cpplints — they pass at the pinned 3.14 while the 21 cluster + the ULP
+  stay (`failed.C.txt` = 22, zero cpplint). dreal4 now treats Python 3.14
+  as an macOS prerequisite and pins it in `.bazelrc`; the 3.15 reading
+  survives in git history (report.md, round 3).
 
 ### Ground rules (from the maintainer)
 
@@ -125,19 +132,20 @@ measured under the host's **Python 3.15.2** — Homebrew's unversioned
 state recorded above and mirrored in `dreal4/README.md` at that commit.
 From the commit that follows this note, dreal4 pins its macOS test runs
 to **Python 3.14** (`.bazelrc` macOS section, prerequisite
-`brew install python@3.14`); the re-measurement at the new pin is
-recorded as cell **C2** below. This measurement is superseded, not
-deleted: it stays the record of what 3.15 does to the suite, and it is
-what proves which bucket of failures is Python-version-driven.
+`brew install python@3.14`); that pin is what cell **C** reports above
+(the 423/445 row). The 3.15 measurement is superseded, not deleted: it
+lives in this file's git history, and it is what proves which bucket of
+failures is Python-version-driven.
 
-## Known state of cell C (recap; authoritative copy in dreal4/README.md)
+## Known state of cell C (22 failures; authoritative copy in dreal4/README.md)
 
 See `dreal4/README.md` → “Testing on macOS: Current Status” for the full
-write-up. Summary of the 142 failures in 445:
+write-up. Cell C runs the pinned Python 3.14, so the 119 cpplints pass;
+the current 22 failures in 445 are:
 
 - **119** `*_cpplint` — vendored cpplint does `import sre_compile`,
-  removed in Python ≥3.13 (host Python issue; intentionally not patched
-  yet).
+  removed in Python ≥ 3.15 (glue-side; under the 3.14 pin these all
+  PASS — the 3.15-era number, 303/142, is this file's git history).
 - **21** answer `unsat` where `delta-sat …` is expected, clustered in
   the `forall`/optimization paths (`Minimize`, `exist_forall_*`,
   `ea_*`, `.dr cost:`, cav18 benchmarks). Preliminary debugging
@@ -195,21 +203,27 @@ dreal4/            submodule → git@github.com:muck-stump/dreal4.git
 harness/           test harness: one Containerfile* per environment image,
                    cells.env (commit × image × recipe per cell),
                    run-all.sh / run-cell.sh / collect.sh, install-*.sh,
-                   in-container-test.sh (the driver baked into every image)
+                   test-driver.sh (one driver: baked into every image for
+                   container cells, run bare on the host for cell C),
+                   summary.sh (the pass/fail view → runs/SUMMARY.md)
 runs/              per-cell artifacts: failed.<cell>.txt (comparison artifact),
-                   completeness.<cell>.txt, env-manifest.<cell>.txt, *.log
-report.md          the A/B/B-vs-C (+B-vs-E/F) diffs + attribution
+                   completeness.<cell>.txt, env-manifest.<cell>.txt, *.log,
+                   SUMMARY.md (generated; the human view)
+report.md          the A/B/B-vs-C (+B-vs-D/E) diffs + attribution
 ```
 
 This superproject currently has **no remote** (local repo only).
 
 ## Usage
 
-One entry point for a round of container cells (missing image → built on
-demand; two cells in parallel at the measured budget):
+One entry point for everything: missing image → built on demand, cells run
+in batches at the measured budget, artifacts collected, `comm -3` against
+cell B printed, and the summary table regenerated:
 
 ```bash
-harness/run-all.sh E F      # → runs/failed.{E,F}.txt + comm -3 diffs vs cell B
+harness/run-all.sh          # all five cells: A B C D E (C runs on this Mac)
+harness/run-all.sh D E      # a subset
+harness/summary.sh          # prose results any time, from runs/SUMMARY.md
 ```
 
 Single-cell pieces (what run-all.sh drives), and the A/B reference round:

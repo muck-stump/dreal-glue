@@ -1,17 +1,19 @@
 #!/usr/bin/env bash
 #
-# run-all.sh <cell> [<cell> ...] — the one entry point for a round of cells:
-# builds any missing image, runs the given cells, collects their artifacts and
-# prints the comparison against cell B (the same code in the reference
-# environment — the diff that decides whether the OS changed anything).
+# run-all.sh [<cell> ...] — the one entry point for a round of cells:
+# builds any missing image, runs the cells (default: every cell in cells.env,
+# A through E), collects their artifacts and prints the comparison against
+# cell B (the same code in the reference environment — the diff that decides
+# whether anything moved) plus the human-readable summary:
 #
-#   harness/run-all.sh E F
+#   harness/run-all.sh          # all five cells: A B C D E
+#   harness/run-all.sh D E      # just a subset
 #
 # Cells run in batches of $PARALLEL (default 2): the podman machine is
 # 8 CPU / 12 GiB and the per-cell budget inside in-container-test.sh is half
 # of that (--jobs=4 / 6 GiB), which is what a cell's numbers were measured
 # with. More cells ≠ more parallelism — queue them.
-# Force image rebuilds: REBUILD=1 harness/run-all.sh E F
+# Force image rebuilds: REBUILD=1 harness/run-all.sh D E
 #
 set -euo pipefail
 
@@ -19,7 +21,7 @@ ROOT=$(cd "$(dirname "$0")/.." && pwd)
 # shellcheck source=cells.env
 source "$ROOT/harness/cells.env"
 
-[ $# -ge 1 ] || { echo "usage: run-all.sh CELL [CELL ...]   (known cells: $CELLS)" >&2; exit 2; }
+[ $# -ge 1 ] || set -- $CELLS   # no args = every cell, A through E
 for c in "$@"; do
   cell_known "$c" || { echo "unknown cell: $c (known cells: $CELLS)" >&2; exit 2; }
 done
@@ -55,3 +57,7 @@ if [ -f "$ROOT/runs/failed.B.txt" ]; then
     true
   done
 fi
+
+# The one-page view of the results — every cell's numbers, its failing
+# targets named, and the A/B verdict (also written to runs/SUMMARY.md).
+"$ROOT/harness/summary.sh"

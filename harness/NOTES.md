@@ -270,3 +270,13 @@ build: sections — a query-based check falsely shows the old python).
       Scored block above and report.md)
 - [ ] optional follow-up round: fix `gmp_repository.bzl` arch probe as a
       normal dreal4 commit → new pin → fresh A'/B' pair
+
+## Letter standardization (after all earlier entries)
+
+Cells are now exactly five, letters fixed: A (original code, reference
+container), B (modernized code, reference container), C (modernized code,
+this Mac — HOST cell, runs bare via `harness/test-driver.sh`, no image),
+D (Ubuntu 24.04), E (Fedora 43). Mappings from earlier entries: C2 → C
+(current C overwrites itself in git; the ibex-swap run will too), old E → D,
+old F → E; the pre-harness "base on Mac doesn't configure/build" probe was
+never a cell. See the renaming commit for every earlier reading.
