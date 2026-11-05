@@ -1024,3 +1024,36 @@ still reproducible two ways — unset `CELL_C_IBEX_PREFIX` and re-run
 (it stays 1/4 red on stock, 4/4 green patched). **Making it default**
 (`cells.env` default + the README base-config line for cell C) is the
 maintainer decision, one commit, revertable by unsetting one env var.
+
+**Default decision (round 8b, after scoring): DEFAULTED — round-8 fix is
+now how this repository builds cell C**, so the top-level state reflects
+the method for a fully-green macOS build. Concretely, one commit:
+
+- `harness/cells.env`: `CELL_C_IBEX_PREFIX` now *defaults* (when unset)
+  to `$HOME/.local/opt/ibex-352eeeb-iec559` — the `IBEX_FORCE_IEC559=1`
+  build whose full recipe is printed in the comment. **Set to any value
+  to override; set EMPTY for the round-6 base config** (stock
+  `ibex@2.7.4_13` → 423/22, historic configuration preserved).
+- `harness/run-cell.sh`: **fail-loud selector check** before any bazel —
+  an installed prefix whose `rounding_control_config.hpp` still has the
+  force-define commented out is refused with the exact rebuild recipe
+  (`CELL_C_IBEX_ACCEPT_UNPATCHED=1` = documented escape hatch for a
+  deliberate un-patched experiment, e.g. trial-4 repro);
+  `IBEX_QUERY` receipt now says `selector-patched prefix: …`.
+- `harness/install-ibex.sh` default stays **OFF** (`IBEX_FORCE_IEC559`
+  remains opt-in there): the Linux reference-image recipe must not
+  change bytes; no cell A/B/D/E invocations set it.
+
+Gates (receipts `runs/T-m-default-gate.txt` [a]–[h], all pre-commit):
+syntax + three-way var semantics; negative test refused the *un-patched*
+trial-4 prefix rc=1 with the rebuild hint; **default-path run 1** (the
+scored-config identical invocation, 445/445); default-path runs 2–3 +
+this one: **cluster = 0 each**, only `//dreal/util:timer_test` (the
+registered-unscored timing flake — `duration3 < duration4` strict race,
+passes standalone and in the scored run, has flaked in A/C/D/E
+historically; failure rate under full-cell load ≈ 3/4 here); `no loading
+errors` in all runs; ibex receipt shows the default prefix. Collector
+state committed: `runs/failed.C.txt` = [timer_test] only,
+`runs/completeness.C.txt` = 445 executed, `runs/SUMMARY.md` regenerated.
+Reproduce a *zero-failure* artifact: re-run after a quiet moment, or
+read the scored run in `runs/T-m-scoring.txt` (same config, same bins).

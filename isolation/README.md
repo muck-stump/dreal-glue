@@ -114,7 +114,10 @@ refs 0 → 1, this test **1/4 stock → 4/4 patched on the same machine**;
 cell C run afterwards: **445/445, 0 new failures** with every registered
 prediction taken (`report.md` round 8, `runs/T-m-scoring.txt`). The
 base paths of this test stay honest either way: no prefix → 1/red (what
-cell C was), patched prefix → 4/green. Knob is still opt-in.
+cell C was), patched prefix → 4/green. Since round 8b this is cell C's
+**default** — no prefix argument means stock brew here, and the cell
+resolves the patched prefix itself (`harness/cells.env`, fail-loud
+in `run-cell.sh`; gates: `runs/T-m-default-gate.txt`).
 
 ## Scope — what this test does NOT claim
 

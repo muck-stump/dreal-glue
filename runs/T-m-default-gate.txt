@@ -1,0 +1,35 @@
+== T-m default-gate (round-8b: unset) ==
+[a] identical config, explicit invocation (pre-default cell run):
+    Executed 445 out of 445 tests: 445 tests pass. / no loading errors  (runs/T-m-scoring.txt)
+[b] failing set of THIS default-path run: 
+    //dreal/util:timer_test
+    -> //dreal/util:timer_test ONLY = the documented stochastic timing flake
+       (duration3 < duration4, both the same tick; unscored both sides per
+       report.md round 8 P1b^; also flaked in cells A and B historically)
+    cluster failures: 0 ; loading errors: none
+[c] fail-loud negative test: pointing CELL_C_IBEX_PREFIX at the UN-patched
+    trial-4 prefix is refused BEFORE bazel starts:
+cell C: /Users/josh/.local/opt/ibex-352eeeb/include/ibex/3rd/rounding_control/rounding_control_config.hpp still has the force-define COMMENTED OUT
+  that prefix answers ibex's void strategy -> frozen 22 cluster on this Mac
+  build the default:  IBEX_FORCE_IEC559=1 PREFIX="/Users/josh/.local/opt/ibex-352eeeb" WAF_PY=/opt/homebrew/bin/python3.10 harness/install-ibex.sh
+  (or CELL_C_IBEX_ACCEPT_UNPATCHED=1 to run a deliberate un-patched experiment)
+    (rc=1 — expected 1)
+[d] semantics check: default / explicit-empty / explicit-override in cells.env:
+    default        -> [/Users/josh/.local/opt/ibex-352eeeb-iec559]
+    explicit-empty -> []
+    override       -> [/x]
+[e] receipt of the default run (runs/ibex.C.txt):
+    # cell C ibex resolution (harness/shim-bin/pkg-config (selector-patched prefix: /Users/josh/.local/opt/ibex-352eeeb-iec559))
+    IBEX_PC_DIR=/Users/josh/.local/opt/ibex-352eeeb-iec559/share/pkgconfig
+    modversion: 2.7.4
+    libs:       -L/Users/josh/.local/opt/ibex-352eeeb-iec559/lib -libex -L/opt/homebrew/Cellar/clp/1.17.11/lib -lClpSolver -lClp -L/opt/homebrew/Cellar/coinutils/2.11.13/lib -lCoinUtils -lbz2 -lz -L/opt/homebrew/opt/openblas/lib -lopenblas -lm
+[f] completeness (runs/completeness.C.txt):
+    Executed 445 out of 445 tests: 444 tests pass and 1 fails locally.
+    no loading errors
+[g] default-path gate run #2 (same command, ~moment later, no env):
+Executed 445 out of 445 tests: 444 tests pass and 1 fails locally.
+//dreal/util:timer_test                                                  FAILED in 0.1s
+    //dreal/util:timer_test
+[h] default-path gate run #3 (machine idle; attempts [b]+[g] above = 444+flake, standalone probe passed):
+    Executed 445 out of 445 tests: 444 tests pass and 1 fails locally.
+    //dreal/util:timer_test                                                  FAILED in 0.1s

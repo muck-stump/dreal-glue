@@ -324,3 +324,24 @@ Outcome: 0/22 flip across three runs (prediction ≥19/22, pre-registered in
 report.md round 4 before the build existed): ibex *source* exonerated;
 remaining mechanism axis = Apple clang / -ffp-contract / Apple libm of this
 Mac vs every Linux cell. Reverse arm (Linux on 26eeeaa) stay next per plan.
+
+## Round 8 — cell-C cluster root-caused, fixed, defaulted
+
+- Root cause (K): ibex ships `rounding_control_config.hpp.in` with its
+  `__STDC_IEC_559__` force-define COMMENTED OUT; no darwin toolchain
+  defines that macro → ibex/filib selected `rounding_control_double_void`
+  (`downward()` NOP) → round-to-nearest interval endpoints → non-rigorous
+  enclosure → wrong `unsat` (`nm`: brew = 0 fesetround refs, linux = 3).
+- Fix mechanics: `IBEX_FORCE_IEC559=1` in install-ibex.sh generates one
+  451-byte unified diff next to the bundled filib archive so waf's own
+  `apply_all_relevant_patches` applies it (template `filibsrc-*.tar.gz`
+  is extracted during configure → patch the `.hpp.in`, not the header).
+  Guard `#if !defined(...)` ⇒ no-op wherever the macro exists; script
+  default OFF so reference images stay byte-identical.
+- Cells: scoring 23 flips / 0 new / 445/445 (report round 8); default
+  now cells.env prefix + run-cell.sh fail-loud check (escape:
+  CELL_C_IBEX_ACCEPT_UNPATCHED=1; opt-out: CELL_C_IBEX_PREFIX= →
+  round-6 base 423/22). Receipts: runs/T-m-{gate,scoring,default-gate}.txt.
+- Open: upstream issue to ibex/filib (force-define ships commented out);
+  fix path (ii) ibex 2.9/gaol port remains plan B (T-l census recorded);
+  timer_test flake left alone (dreal4 frozen; registered unscored).

@@ -36,7 +36,7 @@ Matrix (a "cell" = code × environment):
 |---|---|---|---|
 | A | base `f93bdcc` (original, pre-modernization) | ubuntu 22.04 reference container | **measured: 445/445 pass** |
 | B | `e6d31b4` (`modernize-macos`) | ubuntu 22.04 reference container | **measured: 445/445 pass** |
-| C | `51c93b9` (= modernized + macOS pin/docs commits; the submodule pin) | this Mac (macOS, Apple Silicon), Python **3.14 pinned** | **base config: 445/445 executed, 423 pass / 22 fail** — the "unsat cluster" + 1 ULP; ibex = stock Homebrew `ibex@2.7.4_13` (round-6 strip; the `352eeeb` tag alone flips nothing — trial 4). **Fix knob T-m (opt-in): `IBEX_FORCE_IEC559=1` source build → cell C = 445/445** (`runs/T-m-scoring.txt`; of which every prediction taken — report round 8). Default decision pending; last *measured* runs/ artifacts = the trial config |
+| C | `51c93b9` (= modernized + macOS pin/docs commits; the submodule pin) | this Mac (macOS, Apple Silicon), Python **3.14 pinned** | **445/445 executed, cluster = 0 failures, `//dreal/util:timer_test` only** — the 22-failure wrong-`unsat` cluster is *fixed at the root* (round 8: force-define `__STDC_IEC_559__`, every registered prediction taken: 23 flips / 0 new / 445/445 — `runs/T-m-scoring.txt`). **Default ibex = the `IBEX_FORCE_IEC559=1` source build of `352eeeb`** (recipe in `harness/cells.env`, fail-loud selector check in `run-cell.sh`; `CELL_C_IBEX_PREFIX=` = documented opt-out to the round-6 base config, stock `ibex@2.7.4_13`, 423/22). Remaining label = `timer_test`, the documented stochastic timing flake (registered unscored; passed in the scored run + standalone; failed 3/4 full-cell runs here; has flaked in A/C/D/E historically) |
 | D | `e6d31b4` (same code as B) | **Ubuntu 24.04** container (gcc 13, Python 3.12, gmp 6.3.0) | **measured: 444/445 pass**, 1 unbuildable (GCC≥13 `-Wdangling-reference` under `-Werror`), behavioural diff vs B = none |
 | E | `e6d31b4` (same code as B) | **Fedora 43** container (gcc 15, Python 3.14, nlopt 2.10) | **measured: 443/445** (same build failure + `timer_test` flake), behavioural diff vs B = none |
 
@@ -151,6 +151,19 @@ failures is Python-version-driven.
 
 ## Known state of cell C (22 failures; authoritative copy in dreal4/README.md)
 
+> **RESOLVED in round 8 — current state is 0 cluster failures.** All 21
+> wrong-`unsat` + the 1 ULP (`get_value_01`) = one root cause: ibex ships
+> the `__STDC_IEC_559__` force-define **commented out** and no Apple
+> toolchain defines it, so ibex/filib selected its no-op rounding
+> strategy → non-rigorous interval endpoints → empty boxes → wrong
+> `unsat`. Fixed by default in this repository (`IBEX_FORCE_IEC559=1`
+> source build, recipe + shell guard in `harness/`), measured: every
+> label of the cluster flipped, 0 new failures (`report.md` round 8,
+> receipts `runs/T-m-*`). Only remaining cell-C label = `timer_test`,
+> the documented stochastic timing flake below (unscored). The write-up
+> below and the copy in `dreal4/README.md` (frozen subtree) are the
+> historical pre-fix recording.
+
 See `dreal4/README.md` → “Testing on macOS: Current Status” for the full
 write-up. Cell C runs the pinned Python 3.14, so the 119 cpplints pass;
 the current 22 failures in 445 are:
@@ -221,8 +234,10 @@ harness/           test harness: one Containerfile* per environment image,
 isolation/         the 22-test cluster in one self-contained test: pure ibex
                    + <fenv.h> only, NO dreal code (cannot affect solver
                    behaviour, does not touch the dreal4 pin or the frozen
-                   445-target accounting). `run.sh` is red on this Mac and
-                   green in every Linux cell image — see isolation/README.md
+                   445-target accounting). `run.sh` without `IBEX_PREFIX` is red on
+                   this Mac (stock brew ibex — the round-6 base path), green under
+                   cell C's default prefix and in every Linux cell image — see
+                   isolation/README.md
 runs/              per-cell artifacts: failed.<cell>.txt (comparison artifact),
                    completeness.<cell>.txt, env-manifest.<cell>.txt, *.log,
                    SUMMARY.md (generated; the human view)
@@ -269,7 +284,33 @@ Note: `git submodule update --remote` moves the submodule to the tip of
 the branch named in `.gitmodules`; comparison runs must pin explicit
 commit ids instead, as recorded in the reports.
 
+Fully-green cell C (round-8 default): ibex must be the selector-patched
+source build — `harness/cells.env` points cell C at this prefix and
+`run-cell.sh` fails loudly (with this recipe) if a prefix is present but
+un-patched:
+
+```bash
+IBEX_FORCE_IEC559=1 PREFIX="$HOME/.local/opt/ibex-352eeeb-iec559" \
+  WAF_PY=/opt/homebrew/bin/python3.10 harness/install-ibex.sh
+harness/run-all.sh C                      # uses that prefix by default
+CELL_C_IBEX_PREFIX= harness/run-all.sh C  # documented opt-out: round-6 base
+```
+
 ## Status / next steps
+
+**Round 8 — the cell-C cluster is fixed and defaulted in this repo.** The
+22 wrong-`unsat` + 1 ULP failures were one root cause (ibex's commented-
+out `__STDC_IEC_559__` force-define → no-op rounding strategy on every
+Apple toolchain chain). Cell C now builds ibex from the pinned commit
+with that single patch (`IBEX_FORCE_IEC559=1`, one 451-byte template
+patch applied by ibex's own patch pipeline; `#if !defined`-guarded so
+Linux/reference-image builds are byte-for-byte unaffected by the script
+default off). Measured: **23/23 baseline labels flip, 0 new failures,
+445/445 executed** (scored run, `report.md` round 8); the default path
+gate runs (`runs/T-m-default-gate.txt`) show cluster = 0 every time,
+remaining label = registered-unscored `timer_test` flake (444/445
+artifacts, passes standalone). Open: optional upstream issue to
+ibex/filib; dreal4/ remains pristine (round-6 policy).
 
 Done: dreal4 modernization (13 commits, all pushed), cell C measured
 and documented in `dreal4/README.md`, this workspace scaffolded, podman

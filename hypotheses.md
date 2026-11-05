@@ -303,3 +303,17 @@ configuration until either (a) the default is switched (decision +
 cells.env/README commit) or (b) a base-config restore run (round-6
 pattern) overwrites them. Record `runs/T-m-failed.txt` = empty file
 (0 failing labels) next to `runs/T-m-scoring.txt`.
+
+**Update 8b (decision, post-scoring): DEFAULTED.** `CELL_C_IBEX_PREFIX`
+now defaults to the patched prefix (recipe + opt-out `CELL_C_IBEX_PREFIX=`
+base-config documented in cells.env), `run-cell.sh` fails loudly on any
+un-patched prefix (escape `CELL_C_IBEX_ACCEPT_UNPATCHED=1`, recipe in
+the error), `install-ibex.sh` itself stays default-off so reference
+images remain byte-identical. Gates: `runs/T-m-default-gate.txt` —
+negative test refused rc=1; three default-path runs with **cluster = 0**
+each (only the registered-unscored `timer_test` flake; passes standalone
+and in the scored run ≈ 3/4 flake under full-cell load); `no loading
+errors`; receipts show the default prefix. Committed collector state:
+`runs/failed.C.txt` = [`//dreal/util:timer_test`],
+`runs/completeness.C.txt` = 445/445 executed,
+`runs/SUMMARY.md` regenerated.
