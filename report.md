@@ -984,7 +984,7 @@ README "stock brew ibex" base-config line) is a separate decision and a
 separate commit after scoring.
 
 **T-m SCORED — P1, P1b, P2, P3 ALL TAKEN.** Registration above; the cell
-run happened after that commit (`14c649c`).
+run happened after that commit (`deaec15`).
 
 | prediction | registered | measured |
 |---|---|---|
