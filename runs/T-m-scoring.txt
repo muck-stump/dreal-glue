@@ -1,0 +1,39 @@
+== T-m scoring (baseline = pre-run runs/failed.C.txt, 23 labels = frozen 22 + timer flake) ==
+baseline:
+      23
+now:
+       0
+
+comm -3  (col1 = fails before, passes now = FLIPPED) | (col2 = NEW FAILURES):
+//dreal/api:api_test
+//dreal/api:cav18_benchmark_with_local_opt
+//dreal/api:cav18_benchmark_without_local_opt
+//dreal/test/dr:constrained_opt_rosenbrock_cubic
+//dreal/test/dr:constrained_opt_rosenbrock_disk
+//dreal/test/dr:unconstrained_opt_beale
+//dreal/test/dr:unconstrained_opt_eggholder
+//dreal/test/dr:unconstrained_opt_mccormick
+//dreal/test/dr:unconstrained_opt_poly1
+//dreal/test/python:api_test
+//dreal/test/python:github_issue_154
+//dreal/test/smt2:ea_01
+//dreal/test/smt2:ea_beale
+//dreal/test/smt2:exist_forall_04
+//dreal/test/smt2:exist_forall_06
+//dreal/test/smt2:exist_forall_07
+//dreal/test/smt2:exist_forall_08
+//dreal/test/smt2:exist_forall_10
+//dreal/test/smt2:get_value_01
+//dreal/test/smt2:github_issue_192
+//dreal/test/smt2:github_issue_201
+//dreal/test/smt2:minimize_03
+//dreal/util:timer_test
+
+completeness:
+Executed 445 out of 445 tests: 445 tests pass.
+no loading errors
+ibex receipt:
+# cell C ibex resolution (harness/shim-bin/pkg-config (trial knob: CELL_C_IBEX_PREFIX=/Users/josh/.local/opt/ibex-352eeeb-iec559))
+IBEX_PC_DIR=/Users/josh/.local/opt/ibex-352eeeb-iec559/share/pkgconfig
+modversion: 2.7.4
+libs:       -L/Users/josh/.local/opt/ibex-352eeeb-iec559/lib -libex -L/opt/homebrew/Cellar/clp/1.17.11/lib -lClpSolver -lClp -L/opt/homebrew/Cellar/coinutils/2.11.13/lib -lCoinUtils -lbz2 -lz -L/opt/homebrew/opt/openblas/lib -lopenblas -lm

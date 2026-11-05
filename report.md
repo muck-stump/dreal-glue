@@ -982,3 +982,45 @@ result committed as a `T-m` row in `hypotheses.md`. The knob stays
 **opt-in** whatever happens; making it cell C's default (= editing the
 README "stock brew ibex" base-config line) is a separate decision and a
 separate commit after scoring.
+
+**T-m SCORED — P1, P1b, P2, P3 ALL TAKEN.** Registration above; the cell
+run happened after that commit (`14c649c`).
+
+| prediction | registered | measured |
+|---|---|---|
+| P1 flips | ≥ 14 of the frozen 22 | **23 of 23** baseline labels flip — the frozen 22 *plus* the `timer_test` line (flake, unscored both sides; it did not flake this run) |
+| P2 new failures | 0 | **0** (`comm -3` col-2 empty: `runs/T-m-scoring.txt`) |
+| P3 completeness | 445/445, no loading errors, buckets stable | **"Executed 445 out of 445 tests: 445 tests pass." / "no loading errors"** |
+| P1b kept-set (sharper forecast) | kept ⊆ {rosenbrock×2 (C2), get_value_01 (C4), ea_01, github_issue_201 (C3)} | **kept = ∅** — even the exotic classes flipped |
+
+Receipts: machinery `runs/T-m-gate.txt` (patch generated 451 B → waf
+applied both patches by name → header untaped → `nm` fesetround refs
+0 (brew) / 0 (trial-4 build) / **1** → isolation `1/4` baseline preserved,
+**4/4** patched); provenance of the run itself `runs/ibex.C.txt` (shim
+pointed at `IBEX_PC_DIR=$HOME/.local/opt/ibex-352eeeb-iec559/share/pkgconfig`,
+modversion 2.7.4); scoring `runs/T-m-scoring.txt`.
+
+**Two ±amendments this forces on earlier rounds:**
+
+1. **Trial 5's rubric strands were all read off broken builds.** The
+   registered kept-set (C2 = "legally any answer", C4 = "one-ULP drift,
+   not a flip", C3 = "undecidable by eye") — *every one of them flipped
+   under rigorous rounding*: the rosenbrock pair now answers `delta-sat`
+   (so its `unsat` was never licensed after all), `get_value_01`'s model
+   ULP moves back to the recorded value (⇒ its drift was the same
+   non-rigorous arithmetic, **not** libm drift; T-c stays correct as a
+   measurement but is not its cause), and both C3s resolve. Net: **the
+   cluster is 22/22 one defect**, not "at most 20".
+2. **Fix path (ii) (port to ibex 2.9/gaol, T-l census) is demoted to
+   plan B on correctness grounds** — path (i) measured the cell-level
+   fix. T-l's port census stays as recorded insurance.
+
+**State:** the knob remains **opt-in** — `runs/failed.C.txt`,
+`runs/ibex.C.txt` and `runs/SUMMARY.md` currently record the *trial*
+configuration (cell C = 445/445 with the patched prefix); the base
+configuration result (423/22 on stock brew) lives in git history and is
+still reproducible two ways — unset `CELL_C_IBEX_PREFIX` and re-run
+(round-6 restore pattern), or point `isolation/run.sh` at each prefix
+(it stays 1/4 red on stock, 4/4 green patched). **Making it default**
+(`cells.env` default + the README base-config line for cell C) is the
+maintainer decision, one commit, revertable by unsetting one env var.

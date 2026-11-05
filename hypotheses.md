@@ -275,3 +275,31 @@ input grammar (scan table in the fixture's header). Scope = the C1 wrong-unsat
 family only (trial-5 rubric: `timer_test`, `get_value_01` drift and the
 C2 rosenbrock pair are **not** this test's subject). Detail:
 `isolation/README.md`.
+
+## Round 8 — T-m: fix path (i) executed — force the rounding selector
+
+| trial (hypothesis tested) | what we did | effect on the tests | verdict |
+|---|---|---|---|
+| T-m: cell C's 22 = ibex's `__STDC_IEC_559__`-guard selecting the void rounding strategy; untaping ibex/filib's own commented-out force-define fixes it | `IBEX_FORCE_IEC559=1` in `harness/install-ibex.sh` generates one 451-byte patch beside the bundled filib archive so waf's own `apply_all_relevant_patches` applies it between extraction and compile (guarded `#if !defined` ⇒ no-op on Linux; default off; knobs only — no dreal code, Homebrew untouched, pin pristine); source-build `352eeeb` → `~/.local/opt/ibex-352eeeb-iec559` (trial-4 recipe + the one env var); cell run via the existing `CELL_C_IBEX_PREFIX` knob | **P1 taken** (registered ≥14 flips): **23/23 baseline labels flip, 0 new** … **P2 taken** (comm col-2 empty) … **P3 taken** (445/445 executed, "no loading errors") … **P1b taken-and-sharpened**: registered kept ⊆ {rosenbrock×2, get_value_01, ea_01, github_issue_201}, measured kept = **∅** | **Root cause K → confirmed at cell level with a knob.** Mechanism gates first (`runs/T-m-gate.txt`: waf applied the patch by name, header untaped, `nm -u` fesetround refs 0 brew / 0 trial-4 / 1 patched, isolation test 1/4 baseline preserved → **4/4 patched**), then the cell: cell C = **445/445** (`runs/failed.C.txt` empty, `runs/ibex.C.txt` records the prefix, scoring in `runs/T-m-scoring.txt`, registration in report round 8 committed before the run) |
+
+**Ledger amendments forced by T-m's kept-set:**
+
+- **Trial 5's erratum classes were read through the defect itself.** C2
+  ("both answers legal") flipped → the pair's `unsat` was never
+  licensed; C4 (`get_value_01` "value-drift, no flip") flipped → its ULP
+  was the same non-rigorous arithmetic, so the T-c libm reading is a
+  true measurement but *not* this cause; both C3s resolved. Recount: the
+  frozen cluster is **22/22 one root cause**, not "at most 20".
+- **Fix path (ii)** (dreal→ibex 2.9/gaol port, T-l census) **demoted to
+  plan B for correctness** — (i) measured. T-l's port census remains
+  recorded insurance; the gaol-outward observation now explains why 2.9
+  would also have worked.
+- `//dreal/util:timer_test` (flake, unscored) passed in this run;
+  unaffected provenance stands (it flaked in every cell at least once).
+
+**Status now:** knob **opt-in** (`CELL_C_IBEX_PREFIX` + `IBEX_FORCE_IEC559=1`
+recipe in report round 8); `runs/` artifacts record the trial
+configuration until either (a) the default is switched (decision +
+cells.env/README commit) or (b) a base-config restore run (round-6
+pattern) overwrites them. Record `runs/T-m-failed.txt` = empty file
+(0 failing labels) next to `runs/T-m-scoring.txt`.

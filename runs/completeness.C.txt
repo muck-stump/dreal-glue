@@ -1,2 +1,2 @@
-Executed 445 out of 445 tests: 422 tests pass and 23 fail locally.
+Executed 445 out of 445 tests: 445 tests pass.
 no loading errors
