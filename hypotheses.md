@@ -232,3 +232,46 @@ Two competing fix paths now stand, pre-registration queued for next:
 gets selected and darwin is *proven* to honor it) vs **(ii) port dreal
 to 2.9** (real code, ~4 files per census, kernel switched to gaol which
 is outward on darwin by measurement).
+
+## Isolation test — `isolation/` (artifact, not an intervention; appended with the K round)
+
+Root cause **K** now has a runnable witness that contains **no dreal
+code at all** — only `<fenv.h>` and ibex — per the standing constraints
+(pin pristine, tests never touch solver logic, the frozen 445-target
+denominator inside dreal4 untouched):
+
+```bash
+isolation/run.sh                      # this Mac
+isolation/run.sh --container[=IMAGE]  # linux cell image (22.04 / 24.04 / fedora-43)
+isolation/run.sh --dreal <binary>     # + the 4-line fixture through dreal
+```
+
+Four checks: `[1]` OS `fesetround` (control), `[2]` ibex's own
+`rounding_control` selector, `[3]` `ibex::Interval` enclosure, `[4]` an
+ibex-only replay of `ContractorIbexFwdbwd`'s backward pass on a
+witness-bearing linear capsule — the wrong-`unsat` itself, inside the
+dependency. **Measured: darwin 1/4 pass ([2][3][4] red = the cluster);
+linux images 4/4 green (3/3 images); `--dreal` on the fixture answers
+`unsat` here (the fixture is in no cell's suite; its ancestor
+`github_issue_192` is `delta-sat` in cells A/B/D/E — runs/failed.*.txt).**
+No dreal code path is involved, so red-on-darwin/green-on-linux is a
+statement about the dependency, which is what trial 5 + K claimed.
+
+Gate-measurement for the pending fix path (i), already taken:
+`TEST_CXXFLAGS='-D__STDC_IEC_559__' isolation/run.sh` → **3/4** — `[2]`
+and `[3]` flip green (they compile ibex's headers in the test's own TU =
+any consumer TU, dreal's included) while `[4]` stays red (it runs code
+compiled into `libibex`). So `-D__STDC_IEC_559__` must reach **both** the
+ibex build and dreal's copts; one command reads out both halves.
+
+Provenance of the 4-line fixture (all dreal answers measured on this
+Mac): `github_issue_192` → drop `worklist-fixpoint` + unused assert →
+`(< (- 8.787792382 567495437.0 r0) 0.0)` → constants swept until
+`(< (- 0.1 10 r0) 0.0)`. Exact-decimal constants (1.0, 0.5, 0.25) fold
+to a point and never fail; inexact decimals become ibex "capsules" —
+the literals that round-to-nearest can collapse — but not every capsule
+fails: the boundary is the backward round-trip landing outside, not the
+input grammar (scan table in the fixture's header). Scope = the C1 wrong-unsat
+family only (trial-5 rubric: `timer_test`, `get_value_01` drift and the
+C2 rosenbrock pair are **not** this test's subject). Detail:
+`isolation/README.md`.

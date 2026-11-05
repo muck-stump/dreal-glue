@@ -218,6 +218,11 @@ harness/           test harness: one Containerfile* per environment image,
                    test-driver.sh (one driver: baked into every image for
                    container cells, run bare on the host for cell C),
                    summary.sh (the pass/fail view → runs/SUMMARY.md)
+isolation/         the 22-test cluster in one self-contained test: pure ibex
+                   + <fenv.h> only, NO dreal code (cannot affect solver
+                   behaviour, does not touch the dreal4 pin or the frozen
+                   445-target accounting). `run.sh` is red on this Mac and
+                   green in every Linux cell image — see isolation/README.md
 runs/              per-cell artifacts: failed.<cell>.txt (comparison artifact),
                    completeness.<cell>.txt, env-manifest.<cell>.txt, *.log,
                    SUMMARY.md (generated; the human view)
