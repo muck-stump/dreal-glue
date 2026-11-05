@@ -915,3 +915,70 @@ work). Cell C restored to canonical base config in the next run.
 Sequence-integrity note for the record: T-l's original registration was
 committed before everything shown here; the amendment header above
 explains its late timestamp.
+
+---
+
+## Round 8 — T-m: forcing ibex's rounding selector (fix path (i))
+
+**PREDICTION REGISTERED BEFORE THE CELL RUN.** (Gates below were taken
+before this registration; the cell run has not happened when this was
+committed.)
+
+**Hypothesis (root cause K, round 7).** Cell C's 22-test cluster is
+ibex-on-darwin selecting `rounding_control_double_void.icc` — whose
+`downward() {}` are empty bodies — because no darwin toolchain header
+chain ever defines `__STDC_IEC_559__` and ibex/filib ships its own
+force-define *commented out*: round-to-nearest interval endpoints →
+non-rigorous enclosure → `ContractorIbexFwdbwd` empties boxes with
+witnesses in them → `unsat` where the reference cells say `delta-sat`.
+
+**Intervention (fix trial, knob only, no dreal code, config knob = ibex's
+own dormant switch).** Not a compiler flag: `IBEX_FORCE_IEC559=1` makes
+`harness/install-ibex.sh` *generate* one 451-byte patch file beside the
+bundled filib archive (`3rd/filibsrc-3.0.2.2.all.all.iec559.patch` — a
+sibling of ibex's own `.all.all.patch`), so waf's existing
+`apply_all_relevant_patches` applies it between extraction and
+configure/compile: the three commented lines untaped, still guarded by
+`#if ! defined(__STDC_IEC_559__)` (⇒ no-op wherever the macro exists, so
+reference images never build differently; nobody sets the env there).
+Default off — identical species to the kept `IBEX_CSTDINT_FIX`.
+
+Build (trial-4's exact recipe + the one knob; Homebrew untouched, dreal4
+pin pristine, cell selected through the existing `CELL_C_IBEX_PREFIX`
+knob from round-4):
+
+```bash
+IBEX_FORCE_IEC559=1 PREFIX="$HOME/.local/opt/ibex-352eeeb-iec559" \
+  WAF_PY=/opt/homebrew/bin/python3.10 harness/install-ibex.sh
+CELL_C_IBEX_PREFIX="$HOME/.local/opt/ibex-352eeeb-iec559" harness/run-cell.sh C
+harness/collect.sh C
+```
+
+**Gates already taken (mechanism, not the scoring prediction) —
+`runs/T-m-gate.txt`:** generator wrote the patch; **waf applied both
+patches by name**; installed selector header **untaped**;
+`nm -u … | grep -c fesetround` → brew **0**, trial-4 unpatched build
+**0**, this build **1** (linux reference: 3, `runs/K-mechanism.txt`);
+isolation test → stock brew path still **1/4 (exit 1, baseline
+preserved)**, `IBEX_PREFIX=<patched>` → **4/4 (exit 0)**, i.e. the
+`[4]` wrong-unsat check flips with `libibex` itself.
+
+**Predictions for the run:**
+
+- **P1**: ≥ **14** of the frozen 22 flip to pass (failures ≙ 8).
+- **P1b** (preferred, sharper): kept ⊆ {`constrained_opt_rosenbrock_cubic`,
+  `constrained_opt_rosenbrock_disk` (C2, legally any answer),
+  `get_value_01` (C4 one-ULP)} ∪ {`ea_01`, `github_issue_201` (C3, not
+  decidable by eye)} ∪ {`//dreal/util:timer_test` flake — unscored both
+  sides}; all 14 pure-C1 + the 3 mixed-suite targets flip.
+- **P2**: zero new failures — every label passing at baseline still
+  passes (`timer_test` excluded from scoring on both sides).
+- **P3**: 445/445 executed, no loading errors; cpplint/python buckets
+  byte-stable vs baseline.
+
+**Scoring:** `comm -3 /tmp/frozen22=runs/failed.C.txt(pre-run copy) …`
+→ new column with **any** label = P2 falsified; flips counted vs P1/P1b;
+result committed as a `T-m` row in `hypotheses.md`. The knob stays
+**opt-in** whatever happens; making it cell C's default (= editing the
+README "stock brew ibex" base-config line) is a separate decision and a
+separate commit after scoring.

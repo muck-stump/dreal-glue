@@ -70,6 +70,63 @@ if [ "${IBEX_CSTDINT_FIX:-0}" = 1 ]; then
   done
 fi
 
+# Selector gate (opt-in; darwin trials only — the reference images never set
+# it. Hypothesis ledger T-m, mechanism read K.)
+# filing path: ibex fetches filib as the *bundled tarball*
+# plugins/interval_lib_filib/3rd/filibsrc-3.0.2.2.tar.gz whose
+# rounding_control/rounding_control_config.hpp.in is an autoconf template the
+# filib configure step renders; ibex applies every 3rd/<name>.all.all*patch it
+# finds beside that archive *between extraction and compilation* (see
+# ibexutils.py apply_all_relevant_patches). The template carries ibex/filib's
+# own force-define of __STDC_IEC_559__ **commented out** — and that macro is
+# the selector rounding_control_double.hpp reads: defined -> …_iso9x.icc
+# (fesetround dance, rigorous outward rounding), never defined -> …_void.icc
+# (downward() {} = NOP). No toolchain header chain on darwin ever defines it
+# (K: mac 0/0 vs linux 1/1 — runs/K-mechanism.txt), so every darwin ibex
+# build — every commit, compiler and cflags variant measured — compiled the
+# void strategy and rounded interval endpoints to nearest: root cause of
+# cell C's 22-test wrong-unsat cluster.
+# So this knob generates a template-side patch file (a sibling of ibex's own
+# bundled .all.all.patch) that untapes the three lines — no new arithmetic,
+# only a selection between ibex's own two strategies, through ibex's own
+# patch pipeline. The block keeps its `#if ! defined(...)` guard, so where the
+# macro exists natively (every Linux build) the generated content is
+# byte-identical — a reference image with the env set would build the same.
+# Receipts before a cell run is trusted:
+#   grep config header          (force-define present)
+#   nm -u "$PREFIX"/lib/libibex* | grep fesetround  (unpatched darwin: 0 refs)
+#   IBEX_PREFIX="$PREFIX" isolation/run.sh          (expects 4/4 green)
+if [ "${IBEX_FORCE_IEC559:-0}" = 1 ]; then
+  echo "IBEX_FORCE_IEC559=1: generating a patch that untapes ibex/filib's force-define (selects iso9x, rigorous rounding)"
+  ARCHIVE="plugins/interval_lib_filib/3rd/filibsrc-3.0.2.2.tar.gz"
+  PATCH="plugins/interval_lib_filib/3rd/filibsrc-3.0.2.2.all.all.iec559.patch"
+  test -f "$ARCHIVE" || { echo "IBEX_FORCE_IEC559: $ARCHIVE not found" >&2; exit 1; }
+  ARCHIVE="$ARCHIVE" PATCH="$PATCH" "${WAF_PY}" - <<'PYEOF'
+import difflib
+import os
+import sys
+import tarfile
+
+member = "filibsrc-3.0.2.2/rounding_control/rounding_control_config.hpp.in"
+old = "/*\n#if ! defined(__STDC_IEC_559__)\n#define __STDC_IEC_559__\n#endif\n*/\n"
+new = "#if ! defined(__STDC_IEC_559__)\n#define __STDC_IEC_559__\n#endif\n"
+archive = os.environ["ARCHIVE"]
+out = os.environ["PATCH"]
+with tarfile.open(archive) as tf:
+    raw = tf.extractfile(member).read().decode("utf-8")
+if old not in raw:
+    print("IBEX_FORCE_IEC559: selector block not found verbatim in", member,
+          file=sys.stderr)
+    sys.exit(1)
+text = ("diff --git a/{0} b/{0}\n".format(member) + "".join(
+    difflib.unified_diff(raw.splitlines(True), raw.replace(old, new, 1).splitlines(True),
+                         fromfile="a/" + member, tofile="b/" + member, n=3)))
+with open(out, "w") as f:
+    f.write(text)
+print("IBEX_FORCE_IEC559: patch written:", out, "(%d bytes)" % len(text))
+PYEOF
+fi
+
 # Configure/build exactly as Dockerfile.amazonlinux does (upstream's own
 # source-build reference). System clp from Ubuntu's coinor-libclp-dev is
 # found via pkg-config (verified: /usr/lib/<triplet>/pkgconfig/clp.pc), so

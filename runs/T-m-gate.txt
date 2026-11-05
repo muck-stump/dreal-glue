@@ -1,0 +1,29 @@
+== T-m gates: IBEX_FORCE_IEC559=1 source-build of dreal-deps/ibex-lib@352eeeb ==
+   prefix: /Users/josh/.local/opt/ibex-352eeeb-iec559   (built: 2026-11-05T03:38:56Z)
+
+[1] generator receipt (harness/install-ibex.sh step):
+IBEX_FORCE_IEC559: patch written: plugins/interval_lib_filib/3rd/filibsrc-3.0.2.2.all.all.iec559.patch (451 bytes)
+
+[2] ibex's own patch pipeline applied our file:
+Applying patch                                   : filibsrc-3.0.2.2.all.all.iec559.patch 
+Applying patch                                   : filibsrc-3.0.2.2.all.all.patch 
+
+[3] installed selector header (force-define untaped?):
+// ISO C99 rounding functions
+#if ! defined(__STDC_IEC_559__)
+#define __STDC_IEC_559__
+#endif
+#endif
+   -> UNTAPED (force-define active)
+
+[4] K's fingerprint: fesetround refs in the built library
+   /opt/homebrew/opt/ibex@2.7.4/lib/libibex.dylib                   refs=0
+   ~/.local/opt/ibex-352eeeb/lib/libibex.dylib                      refs=0
+   ~/.local/opt/ibex-352eeeb-iec559/lib/libibex.dylib               refs=1
+   (linux reference measure: 3 — runs/K-mechanism.txt)
+
+[5] isolation/run.sh (the 22-test cluster in one file):
+   stock brew, unchanged:      1 of 4 passed (exit 1)  <- baseline preserved
+   IBEX_PREFIX=<patched>:      4 of 4 passed (exit 0)
+
+   gate criterion for proceeding to a cell run: [3] untaped + [4] refs>0 + [5] forced=4/4
